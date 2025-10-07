@@ -1,0 +1,175 @@
+:root {
+    --color-background: #121212;
+    --color-surface: #282828;
+    --color-accent-blue: #8AB4F8;
+    --color-highlight-red: #F28B82;
+    --color-text-primary: #FFFFFF;
+    --color-text-secondary: #A0A0A0;
+    --color-border: #4A5568;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+}
+
+h1, h2, h3, h4, h5, .navbar-brand {
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+a {
+    color: var(--color-accent-blue);
+    text-decoration: none;
+}
+a:hover {
+    filter: brightness(1.2);
+    text-decoration: none;
+}
+
+hr {
+    border-top: 1px solid var(--color-border);
+    opacity: 0.5;
+}
+
+
+/*Barra de Navegación */
+.app-navbar {
+    background-color: var(--color-surface);
+}
+
+.search-bar {
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    max-width: 400px;
+}
+.search-bar::placeholder {
+    color: var(--color-text-secondary);
+}
+
+/* Formularios*/
+.form-control {
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+}
+.form-control:focus {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    border-color: var(--color-accent-blue);
+    box-shadow: 0 0 0 0.25rem rgba(138, 180, 248, 0.25);
+}
+
+.btn-primary {
+    background-color: var(--color-accent-blue);
+    border-color: var(--color-accent-blue);
+    color: var(--color-background);
+    font-weight: 500;
+}
+.btn-primary:hover {
+    filter: brightness(1.1);
+}
+
+/*Tarjetas */
+.auth-card, .book-card, .card {
+    background-color: var(--color-surface);
+    border: none;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+}
+
+.card-body, .card-header {
+    color: var(--color-text-primary); 
+}
+
+.card-subtitle, .text-muted, .card-author, .card-synopsis, .action-link {
+    color: var(--color-text-secondary) !important;
+}
+
+/* Iconos y Notificaciones*/
+.material-symbols-outlined {
+    font-size: 28px;
+    vertical-align: middle;
+    color: var(--color-text-secondary);
+    transition: filter 0.2s;
+}
+
+a:hover > .material-symbols-outlined {
+    filter: brightness(1.2);
+}
+
+.notification-badge {
+    background-color: var(--color-highlight-red);
+}
+
+.top-comment-badge {
+    background-color: var(--color-highlight-red);
+    color: var(--color-text-primary);
+    padding: 0.2em 0.5em;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: 700;
+}
+
+.comments-link {
+    color: var(--color-highlight-red);
+    font-weight: 500;
+}
+.comments-link:hover {
+    color: var(--color-highlight-red);
+    filter: brightness(1.2);
+}
+
+/*Tarjeta de Libro*/
+.upvote-section .upvote-button .material-symbols-outlined {
+    color: var(--color-accent-blue);
+    font-size: 32px;
+}
+.upvote-section .upvote-button.voted .material-symbols-outlined {
+    color: #ff6314;
+}
+
+.card-title {
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+/*Dashboard de Administrador*/
+.role-badge {
+    padding: 0.3em 0.6em;
+    border-radius: 0.25rem;
+    font-size: 0.85em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.role-admin {
+    background-color: var(--color-accent-blue);
+    color: var(--color-background);
+}
+.role-user {
+    background-color: var(--color-border);
+    color: var(--color-text-primary);
+}
+
+/*Página de Perfil */
+.list-group-item {
+    background-color: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+}
+.list-group-item-action:hover {
+    background-color: #3a3a3a; 
+    color: var(--color-text-primary);
+}
+
+@media (max-width: 992px) {
+    .search-bar {
+        width: 100%;
+        max-width: none;
+        margin: 10px 0;
+    }
+}
