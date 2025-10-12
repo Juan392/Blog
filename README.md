@@ -62,17 +62,14 @@ Aquí se detallan las acciones que pueden realizar los diferentes tipos de usuar
 A continuación se listan las tecnologías y herramientas principales que se utilizaron para construir este proyecto:
 
 ### **Frontend**
-* **React.js**: Biblioteca principal para la interfaz de usuario.
-* **React Router**: Para la gestión de rutas en el lado del cliente.
-* **Axios**: Para realizar peticiones HTTP a la API.
-* **Bootstrap / Tailwind CSS**: Para el diseño y los estilos.
-* **Vite**: Como herramienta de construcción y servidor de desarrollo.
+* **Bootstrap**: Framework de CSS para el diseño y la maquetación.
+* **CSS3**: Para estilos personalizados y ajustes visuales.
 
 ### **Backend**
 * **Node.js**: Entorno de ejecución de JavaScript.
 * **Express.js**: Framework para construir la API REST.
-* **MongoDB**: Base de datos NoSQL para almacenar la información.
-* **Mongoose**: ODM para modelar los datos de la aplicación.
+* **MySQL**: Base de datos NoSQL para almacenar la información.
+* **MySQL Worckbench**: ODM para modelar los datos de la aplicación.
 * **JSON Web Token (JWT)**: Para la autenticación y autorización.
 * **Bcrypt.js**: Para el hasheo de contraseñas.
 * **Dotenv**: Para la gestión de variables de entorno.
