@@ -1,3 +1,7 @@
+/* ==========================================================================
+   1. Paleta de Colores y Estilos Globales
+   ========================================================================== */
+
 :root {
     --color-background: #121212;
     --color-surface: #282828;
@@ -32,11 +36,14 @@ a:hover {
 
 hr {
     border-top: 1px solid var(--color-border);
-    opacity: 0.5;
+    opacity: 1;
 }
 
+/* ==========================================================================
+   2. Componentes Principales
+   ========================================================================== */
 
-/*Barra de Navegación */
+/* --- Barra de Navegación --- */
 .app-navbar {
     background-color: var(--color-surface);
 }
@@ -51,7 +58,7 @@ hr {
     color: var(--color-text-secondary);
 }
 
-/* Formularios*/
+/* --- Formularios y Botones --- */
 .form-control {
     background-color: var(--color-background);
     border: 1px solid var(--color-border);
@@ -74,7 +81,7 @@ hr {
     filter: brightness(1.1);
 }
 
-/*Tarjetas */
+/* --- Tarjetas (Contenedores) --- */
 .auth-card, .book-card, .card {
     background-color: var(--color-surface);
     border: none;
@@ -83,14 +90,18 @@ hr {
 }
 
 .card-body, .card-header {
-    color: var(--color-text-primary); 
+    color: var(--color-text-primary);
 }
 
 .card-subtitle, .text-muted, .card-author, .card-synopsis, .action-link {
     color: var(--color-text-secondary) !important;
 }
 
-/* Iconos y Notificaciones*/
+/* ==========================================================================
+   3. Componentes Específicos de la App
+   ========================================================================== */
+
+/* --- Iconos y Notificaciones --- */
 .material-symbols-outlined {
     font-size: 28px;
     vertical-align: middle;
@@ -106,25 +117,12 @@ a:hover > .material-symbols-outlined {
     background-color: var(--color-highlight-red);
 }
 
-.top-comment-badge {
-    background-color: var(--color-highlight-red);
-    color: var(--color-text-primary);
-    padding: 0.2em 0.5em;
-    border-radius: 4px;
-    font-size: 0.75em;
-    font-weight: 700;
-}
-
 .comments-link {
     color: var(--color-highlight-red);
     font-weight: 500;
 }
-.comments-link:hover {
-    color: var(--color-highlight-red);
-    filter: brightness(1.2);
-}
 
-/*Tarjeta de Libro*/
+/* --- Tarjeta de Libro --- */
 .upvote-section .upvote-button .material-symbols-outlined {
     color: var(--color-accent-blue);
     font-size: 32px;
@@ -138,7 +136,72 @@ a:hover > .material-symbols-outlined {
     color: var(--color-text-primary);
 }
 
-/*Dashboard de Administrador*/
+/* --- Página de Comentarios --- */
+.comment-card {
+    background-color: var(--color-surface);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.comment-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.comment-author {
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.comment-content {
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+}
+
+.comment-actions .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.btn-comment-action {
+    background-color: var(--color-accent-blue);
+    color: var(--color-background);
+    font-weight: 500;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    border: none;
+}
+.btn-comment-action:hover {
+    color: var(--color-background);
+    filter: brightness(1.1);
+}
+.btn-comment-action .material-symbols-outlined {
+    font-size: 16px;
+    margin-right: 0.25rem;
+    color: var(--color-background);
+}
+
+.top-comment-badge {
+    background-color: var(--color-highlight-red);
+    color: var(--color-text-primary);
+    padding: 0.2em 0.5em;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: 700;
+}
+
+/* --- Dashboard y Perfil --- */
 .role-badge {
     padding: 0.3em 0.6em;
     border-radius: 0.25rem;
@@ -155,7 +218,6 @@ a:hover > .material-symbols-outlined {
     color: var(--color-text-primary);
 }
 
-/*Página de Perfil */
 .list-group-item {
     background-color: var(--color-surface);
     border-color: var(--color-border);
@@ -166,10 +228,212 @@ a:hover > .material-symbols-outlined {
     color: var(--color-text-primary);
 }
 
+/* ==========================================================================
+   4. Diseño Responsive
+   ========================================================================== */
+
+/* Para tablets y dispositivos medianos */
 @media (max-width: 992px) {
     .search-bar {
         width: 100%;
         max-width: none;
         margin: 10px 0;
+    }
+}
+
+/* Para móviles pequeños */
+@media (max-width: 576px) {
+    .card-body {
+        padding: 1.5rem !important;
+    }
+    
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .comment-card {
+        padding: 1rem;
+    }
+}
+
+/* ============================================
+   Comentarios y Tarjeta del Libro - Responsive
+   ============================================ */
+
+/* Contenedor del libro */
+#book-detail-container .card {
+    background-color: var(--color-surface);
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    margin-bottom: 1.5rem;
+}
+
+#book-detail-container .card-body {
+    padding: 1.5rem;
+}
+
+#book-detail-container .card-title {
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+#book-detail-container .text-muted {
+    color: var(--color-text-secondary);
+}
+
+#book-detail-container .btn {
+    background-color: var(--color-accent-blue);
+    border-color: var(--color-accent-blue);
+    color: var(--color-background);
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+#book-detail-container .btn:hover {
+    filter: brightness(1.1);
+}
+
+/* Comentarios */
+#comments-list {
+    width: 100%;
+}
+
+#comments-list .comment-card {
+    display: flex;
+    flex-direction: row;
+    background-color: var(--color-surface);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.comment-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+}
+
+.comment-author {
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.comment-content {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    word-wrap: break-word;
+    padding-left: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.comment-actions a {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--color-accent-blue);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.comment-actions a:hover {
+    filter: brightness(1.1);
+}
+
+/* Botón de acción extra (Abrir link externo) */
+.comment-actions .btn-comment-action {
+    background-color: var(--color-accent-blue);
+    color: var(--color-background);
+    font-size: 0.8rem;
+    padding: 0.25rem 0.75rem;
+    border: none;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.comment-actions .btn-comment-action .material-symbols-outlined {
+    font-size: 16px;
+    margin-right: 0.25rem;
+}
+
+/* Formulario de comentario */
+#comment-form-container textarea {
+    width: 100%;
+    border-radius: 8px;
+    background-color: var(--color-background);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    padding: 0.5rem;
+    resize: vertical;
+    margin-bottom: 0.5rem;
+}
+
+#comment-form-container textarea:focus {
+    border-color: var(--color-accent-blue);
+    box-shadow: 0 0 0 0.2rem rgba(138,180,248,0.25);
+}
+
+#comment-form-container button {
+    width: 100%;
+    font-size: 0.9rem;
+    padding: 0.45rem 0.9rem;
+    background-color: var(--color-accent-blue);
+    border: none;
+    color: var(--color-background);
+    font-weight: 500;
+    border-radius: 6px;
+}
+
+#comment-form-container button:hover {
+    filter: brightness(1.1);
+}
+
+/* ======================
+   Responsividad
+   ====================== */
+
+@media (max-width: 768px) {
+    #comments-list .comment-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .comment-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 576px) {
+    #book-detail-container .card-body {
+        padding: 1rem;
+    }
+
+    #comment-form-container button {
+        font-size: 0.85rem;
+        padding: 0.35rem;
+    }
+
+    .comment-content {
+        font-size: 0.85rem;
     }
 }

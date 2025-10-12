@@ -18,6 +18,24 @@ router.get('/me', authenticateToken, async (req, res, next) => {
     }
 });
 
+// Ruta: GET /api/users/:id (Obtener usuario por ID)
+router.get('/:id', authenticateToken, async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const sql = 'SELECT id, full_name, email, role FROM Users WHERE id = ?';
+        const [users] = await db.query(sql, [id]);
+        
+        if (users.length > 0) {
+            res.status(200).json(users[0]);
+        } else {
+            res.status(404).json({ message: 'Usuario no encontrado.' });
+        }
+    } catch (error) {
+        next(error);
+    }
+});
+
+
 // Ruta: GET /api/users (Obtener todos los usuarios - Solo Admin)
 router.get('/', authenticateToken, isAdmin, async (req, res, next) => {
     try {
@@ -47,3 +65,4 @@ router.patch('/:id/role', authenticateToken, isAdmin, async (req, res, next) => 
 });
 
 module.exports = router;
+
