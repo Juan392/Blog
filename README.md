@@ -7,14 +7,15 @@ Una plataforma de blog moderna y funcional construida con el stack MERN. Permite
 ## 📜 Tabla de Contenidos
 
 1.  [Descripción del Proyecto](#-descripción-del-proyecto)
-2.  [🚀 Características Principales](#-características-principales)
-3.  [🛠️ Tecnologías Utilizadas](#️-tecnologías-utilizadas)
-4.  [⚙️ Instalación y Uso Local](#️-instalación-y-uso-local)
-5.  [📂 Estructura del Proyecto](#-estructura-del-proyecto)
-6.  [🌐 Endpoints de la API](#-endpoints-de-la-api)
-7.  [🤝 Contribuciones](#-contribuciones)
-8.  [📄 Licencia](#-licencia)
-9.  [📧 Contacto](#-contacto)
+2.  [✨ Funcionalidades de la Página](#-funcionalidades-de-la-página)
+3.  [🚀 Características Técnicas](#-características-técnicas)
+4.  [🛠️ Tecnologías Utilizadas](#️-tecnologías-utilizadas)
+5.  [⚙️ Instalación y Uso Local](#️-instalación-y-uso-local)
+6.  [📂 Estructura del Proyecto](#-estructura-del-proyecto)
+7.  [🌐 Endpoints de la API](#-endpoints-de-la-api)
+8.  [🤝 Contribuciones](#-contribuciones)
+9.  [📄 Licencia](#-licencia)
+10. [📧 Contacto](#-contacto)
 
 ---
 
@@ -24,13 +25,35 @@ Este proyecto es una aplicación web completa que simula una plataforma de blogs
 
 ---
 
-## 🚀 Características Principales
+## ✨ Funcionalidades de la Página
 
-* **Autenticación de Usuarios**: Sistema completo de registro e inicio de sesión con JSON Web Tokens (JWT).
-* **Gestión de Artículos (CRUD)**: Los usuarios autenticados pueden crear, editar y eliminar sus propios artículos.
-* **Interfaz Interactiva**: Frontend construido con React para una experiencia de usuario rápida y dinámica.
+Aquí se detallan las acciones que pueden realizar los diferentes tipos de usuarios dentro de la plataforma.
+
+### 👤 Para Visitantes (Sin Iniciar Sesión)
+* **Ver Artículos**: Navegar por la página principal para ver una lista de todos los artículos publicados.
+* **Leer un Artículo Completo**: Hacer clic en cualquier artículo para ver su contenido detallado en una página individual.
+* **Buscar Contenido**: Utilizar una barra de búsqueda para encontrar artículos por título o palabra clave.
+* **Registrarse**: Crear una nueva cuenta de usuario para acceder a más funcionalidades.
+* **Iniciar Sesión**: Acceder a una cuenta existente.
+
+### ✍️ Para Usuarios Registrados
+* **Todas las funcionalidades de los visitantes.**
+* **Crear Artículos**: Acceder a un editor de texto (posiblemente con formato enriquecido) para escribir y publicar nuevos artículos.
+* **Gestionar sus Artículos**: Ver un panel personal (o "dashboard") con una lista de todos los artículos que ha creado.
+* **Editar Artículos**: Modificar el contenido de sus publicaciones existentes.
+* **Eliminar Artículos**: Borrar permanentemente sus propios artículos.
+* **Cerrar Sesión**: Salir de su cuenta de forma segura.
+
+---
+
+## 🚀 Características Técnicas
+
+* **Autenticación con JWT**: Sistema completo de registro e inicio de sesión seguro utilizando JSON Web Tokens.
+* **Gestión de Contenido (CRUD)**: Operaciones completas para Crear, Leer, Actualizar y Eliminar artículos.
+* **API RESTful**: Backend robusto construido con Node.js y Express para gestionar todos los recursos de forma desacoplada.
+* **Hashing de Contraseñas**: Seguridad mejorada al almacenar las contraseñas de los usuarios hasheadas con `bcrypt`.
+* **Single Page Application (SPA)**: Frontend construido con React para una experiencia de usuario fluida y sin recargas de página.
 * **Diseño Responsivo**: La interfaz se adapta a diferentes tamaños de pantalla (móvil, tablet, escritorio).
-* **API RESTful**: Backend robusto construido con Node.js y Express para gestionar todos los recursos.
 
 ---
 
