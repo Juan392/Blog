@@ -1,6 +1,8 @@
-const API_BASE_URL = 'http://localhost:3000/api/auth';
-const BOOKS_URL = 'http://localhost:3000/api/books';
-const NOTIFICATIONS_URL = 'http://localhost:3000/api/notifications';
+const API_BASE_URL = currentConfig.API_BASE_URL;
+const AUTH_URL = `${API_BASE_URL}/auth`;
+const BOOKS_URL = `${API_BASE_URL}/books`;
+const USERS_URL = `${API_BASE_URL}/users`;
+const NOTIFICATIONS_URL = `${API_BASE_URL}/notifications`;
 
 const getToken = () => localStorage.getItem('authToken');
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -31,89 +33,82 @@ function handleLogout() {
 
 function handleRegisterForm() {
     const form = document.querySelector('#register-form');
-    if (!form) return console.log('❌ Formulario de registro no encontrado');
+    if (!form) return;
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
-
         const data = Object.fromEntries(new FormData(form).entries());
         if (data.confirmPassword) delete data.confirmPassword;
 
         if (data.email && !isValidEmail(data.email)) {
-            return alert("Por favor, introduce una dirección de correo electrónico válida.");
+            return showToast("Por favor, introduce una dirección de correo electrónico válida.");
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/register`, {
+            const response = await fetch(`${AUTH_URL}/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
 
             const result = await response.json();
-
             if (!response.ok) {
-                alert(`Error: ${result.message || 'Error desconocido en el registro.'}`);
-                return;
+                return showToast(`Error: ${result.message || 'Error desconocido en el registro.'}`);
             }
 
             if (result.token) localStorage.setItem('authToken', result.token);
-            alert(result.message || 'Registro exitoso.');
+            showToast(result.message || 'Registro exitoso.');
             window.location.href = 'index.html';
 
         } catch (error) {
             console.error('Error de conexión:', error);
-            alert('Error de conexión con el servidor.');
+            showToast('Error de conexión con el servidor.');
         }
     });
 }
 
 function handleLoginForm() {
     const form = document.querySelector('#login-form');
-    if (!form) return console.log('❌ Formulario de login no encontrado');
+    if (!form) return;
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
-
         const data = Object.fromEntries(new FormData(form).entries());
 
         if (data.email && !isValidEmail(data.email)) {
-            return alert("Por favor, introduce una dirección de correo electrónico válida.");
+            return showToast("Por favor, introduce una dirección de correo electrónico válida.");
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/login`, {
+            const response = await fetch(`${AUTH_URL}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
 
             const result = await response.json();
-
             if (!response.ok) {
-                alert(`Error: ${result.message || 'Error desconocido en el login.'}`);
-                return;
+                return showToast(`Error: ${result.message || 'Error desconocido en el login.'}`);
             }
 
             if (!result.token) {
-                alert('El servidor no devolvió un token. Verifica tu backend.');
-                return;
+                return showToast('El servidor no devolvió un token. Verifica tu backend.');
             }
 
             localStorage.setItem('authToken', result.token);
-            alert('Inicio de sesión exitoso.');
+            showToast('Inicio de sesión exitoso.');
             window.location.href = 'library.html';
 
         } catch (error) {
             console.error('Error de conexión:', error);
-            alert('Error de conexión con el servidor.');
+            showToast('Error de conexión con el servidor.');
         }
     });
 }
 
 async function loadNotifications() {
     const badge = document.getElementById('notification-badge');
-    if (!badge) return;
+    if (!badge || !getToken()) return;
 
     try {
         const response = await fetch(NOTIFICATIONS_URL, {
@@ -159,11 +154,13 @@ async function loadBooks() {
         books.forEach(book => {
             const upvotes = book.upvotes || 0;
             const commentsCount = book.comments_count || 0;
-            const externalButton = book.external_link
-                ? `<a href="${book.external_link}" target="_blank" class="btn btn-primary btn-sm me-2">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span> Abrir enlace
-                   </a>`
-                : '';
+            const externalButton = book.external_link ?
+                `<a href="${book.external_link}" target="_blank" class="btn btn-primary btn-sm me-2">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span> Abrir enlace
+                </a>` :
+                '';
+            
+            const displayUpvotes = upvotes >= 1000 ? `${(upvotes / 1000).toFixed(1)}K` : upvotes;
 
             const bookCardHTML = `
                 <div class="card book-card mb-4">
@@ -172,9 +169,7 @@ async function loadBooks() {
                             <a href="#" class="text-decoration-none upvote-button" data-book-id="${book.id}">
                                 <span class="material-symbols-outlined">arrow_upward</span>
                             </a>
-                            <span class="fw-bold d-block" id="upvotes-count-${book.id}">
-                                ${(upvotes / 1).toFixed(1)}
-                            </span>
+                            <span class="fw-bold d-block" id="upvotes-count-${book.id}">${displayUpvotes}</span>
                         </div>
                         <div class="flex-grow-1">
                             <h5 class="card-title text-uppercase">${book.title}</h5>
@@ -185,9 +180,6 @@ async function loadBooks() {
                                     <span class="material-symbols-outlined" style="font-size: 16px;">download</span> Descargar PDF
                                 </a>
                                 ${externalButton}
-                                <a href="${book.external_link}" target="_blank" class="btn btn-primary btn-sm">
-                                    <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span> Abrir enlace
-                                </a>
                             </div>
                             <div class="book-stats mb-2">
                                 <span class="me-3"><strong>${commentsCount}</strong> comentarios</span>
@@ -231,14 +223,15 @@ function bindUpvoteEvents() {
 
                 if (response.ok) {
                     const countElement = document.getElementById(`upvotes-count-${bookId}`);
-                    countElement.textContent = `${(result.newUpvotes / 1000).toFixed(1)}K`;
+                    const newCount = result.newUpvotes;
+                    countElement.textContent = newCount >= 1000 ? `${(newCount / 1000).toFixed(1)}K` : newCount;
                     button.classList.add('voted');
                     button.style.pointerEvents = 'none';
                 } else {
-                    alert(`Error: ${result.message}`);
+                    showToast(`Error: ${result.message}`);
                 }
             } catch (error) {
-                alert('Error de conexión al votar.');
+                showToast('Error de conexión al votar.');
             }
         });
         button.dataset.listenerAttached = 'true';
@@ -252,7 +245,7 @@ async function handleProfilePage() {
     const editBtn = document.getElementById('edit-profile-btn');
 
     try {
-        const response = await fetch(`http://localhost:3000/api/users/me`, {
+        const response = await fetch(`${USERS_URL}/me`, {
             headers: { 'Authorization': `Bearer ${getToken()}` }
         });
 
@@ -297,8 +290,8 @@ async function handleCommentsPage() {
 
     try {
         const [bookRes, commentsRes] = await Promise.all([
-            fetch(`http://localhost:3000/api/books/${bookId}`, { headers: { 'Authorization': `Bearer ${getToken()}` } }),
-            fetch(`http://localhost:3000/api/books/${bookId}/comments`, { headers: { 'Authorization': `Bearer ${getToken()}` } })
+            fetch(`${BOOKS_URL}/${bookId}`, { headers: { 'Authorization': `Bearer ${getToken()}` } }),
+            fetch(`${BOOKS_URL}/${bookId}/comments`, { headers: { 'Authorization': `Bearer ${getToken()}` } })
         ]);
 
         if (!bookRes.ok) throw new Error((await bookRes.json()).message || 'No se pudo cargar el libro.');
@@ -314,7 +307,7 @@ async function handleCommentsPage() {
                         <a href="#" class="text-decoration-none upvote-button" data-book-id="${book.id}">
                             <span class="material-symbols-outlined">arrow_upward</span>
                         </a>
-                        <span class="fw-bold d-block" id="upvotes-count-${book.id}">${book.upvotes || 0} Upvotes</span>
+                        <span class="fw-bold d-block" id="upvotes-count-${book.id}">${book.upvotes || 0}</span>
                     </div>
                     <div class="flex-grow-1">
                         <h5 class="card-title text-uppercase">${book.title}</h5>
@@ -346,7 +339,7 @@ async function handleCommentsPage() {
         const usersMap = {};
         await Promise.all(userIds.map(async id => {
             try {
-                const res = await fetch(`http://localhost:3000/api/users/${id}`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+                const res = await fetch(`${USERS_URL}/${id}`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
                 if (res.ok) {
                     const data = await res.json();
                     usersMap[id] = data.username || data.full_name || 'Usuario desconocido';
@@ -440,12 +433,12 @@ async function handleCommentsPage() {
             const sendBtn = box.querySelector('.send-reply-btn');
             sendBtn.onclick = async () => {
                 const content = box.querySelector('.reply-textarea').value.trim();
-                if (!content) return alert('El comentario no puede estar vacío.');
+                if (!content) return showToast('El comentario no puede estar vacío.');
 
                 try {
-                    const res = await fetch(`http://localhost:3000/api/books/${bookId}/comments`, {
+                    const res = await fetch(`${BOOKS_URL}/${bookId}/comments`, {
                         method: 'POST',
-                        headers: { 
+                        headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${getToken()}`
                         },
@@ -465,17 +458,17 @@ async function handleCommentsPage() {
                     box.querySelector('.reply-textarea').value = '';
                     box.style.display = 'none';
                 } catch (err) {
-                    alert(err.message);
+                    showToast(err.message);
                 }
             };
         };
 
         document.getElementById('submit-comment').addEventListener('click', async () => {
             const content = document.getElementById('new-comment').value.trim();
-            if (!content) return alert('El comentario no puede estar vacío.');
+            if (!content) return showToast('El comentario no puede estar vacío.');
 
             try {
-                const res = await fetch(`http://localhost:3000/api/books/${bookId}/comments`, {
+                const res = await fetch(`${BOOKS_URL}/${bookId}/comments`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
                     body: JSON.stringify({ content, parent_id: null })
@@ -492,7 +485,7 @@ async function handleCommentsPage() {
 
                 document.getElementById('new-comment').value = '';
             } catch (err) {
-                alert(err.message);
+                showToast(err.message);
             }
         });
 
@@ -539,7 +532,7 @@ async function saveBook(bookId) {
 
 async function likeComment(commentId) {
     try {
-        const res = await fetch(`http://localhost:3000/api/books/comments/${commentId}/like`, {
+        const res = await fetch(`${BOOKS_URL}/comments/${commentId}/like`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${getToken()}` }
         });
