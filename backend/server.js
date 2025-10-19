@@ -9,19 +9,20 @@ const cookieParser = require('cookie-parser');
 const cron = require('node-cron');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 // Middlewares
 app.use(cors({
-    origin: ['http://127.0.0.1:5500'],
+    origin: ['https://blog-production-bfac.up.railway.app'], 
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
+app.use(cookieParser());
 
-app.use(cookieParser()); 
+// Cron job: limpiar usuarios no verificados cada 24h
 cron.schedule('0 0 * * *', async () => {
     console.log('🗑️ Ejecutando tarea de limpieza de usuarios no verificados...');
     try {
@@ -31,10 +32,7 @@ cron.schedule('0 0 * * *', async () => {
             WHERE status = 'unverified' 
             AND created_at < ?
         `;
-        
-        // 3. Ejecuta la consulta.
         const [result] = await db.query(sql, [twentyFourHoursAgo]);
-
         if (result.affectedRows > 0) {
             console.log(`✅ Tarea de limpieza completada. Se eliminaron ${result.affectedRows} usuarios.`);
         } else {
@@ -45,20 +43,28 @@ cron.schedule('0 0 * * *', async () => {
     }
 });
 
-
-// Sirviendo archivos estáticos
+// Carpeta de uploads
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
 app.use('/uploads', express.static(uploadDir));
 
-// Rutas
+// Servir frontend sin mover carpetas
+app.use('/html', express.static(path.join(__dirname, '../html')));
+app.use('/css', express.static(path.join(__dirname, '../css')));
+app.use('/js', express.static(path.join(__dirname, '../js')));
+
+// Ruta principal
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../html/index.html'));
+});
+
+// Rutas del backend
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const bookRoutes = require('./routes/books');
 const notificationRoutes = require('./routes/notifications');
-
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);

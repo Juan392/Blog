@@ -3,11 +3,11 @@ const isLocal = window.location.hostname === "127.0.0.1";
 const currentConfig = {
   API_BASE_URL: isLocal
     ? "http://127.0.0.1:3000/api"
-    : "https://tu-dominio-en-produccion.com/api",
+    : "https://blog-production-bfac.up.railway.app/api",
 
   STATIC_BASE_URL: isLocal
     ? "http://127.0.0.1:3000"
-    : "https://tu-dominio-en-produccion.com"
+    : "https://blog-production-bfac.up.railway.app"
 };
 
 export const API_BASE_URL = currentConfig.API_BASE_URL;
