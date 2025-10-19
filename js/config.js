@@ -1,4 +1,4 @@
-const isLocal = window.location.hostname === "127.0.0.1";
+const isLocal = window.location.hostname === "https://blog-production-bfac.up.railway.app";
 
 const currentConfig = {
   API_BASE_URL: isLocal
