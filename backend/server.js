@@ -79,6 +79,13 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
 });
 
+// Al final de server.js, después de conectar a la DB
+const seedAdmin = require('./scripts/seedAdmin');
+
+seedAdmin()
+  .then(() => console.log('✅ Usuario admin creado o verificado'))
+  .catch(err => console.error('❌ Error creando usuario admin:', err));
+
 // Iniciar servidor
 db.getConnection()
   .then(() => {
