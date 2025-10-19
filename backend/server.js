@@ -62,6 +62,8 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const bookRoutes = require('./routes/books');
 const notificationRoutes = require('./routes/notifications');
+const createAdminAccount = require('./scripts/seedAdmin');
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -79,19 +81,13 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
 });
 
-// Al final de server.js, después de conectar a la DB
-const seedAdmin = require('./scripts/seedAdmin');
-
-seedAdmin()
-  .then(() => console.log('✅ Usuario admin creado o verificado'))
-  .catch(err => console.error('❌ Error creando usuario admin:', err));
-
 // Iniciar servidor
 db.getConnection()
   .then(() => {
       console.log('✅ Conectado correctamente a la base de datos.');
       app.listen(PORT, () => {
           console.log(`Servidor corriendo en el puerto ${PORT}`);
+createAdminAccount().catch(err => console.error('❌ Error creando admin:', err));
       });
   })
   .catch((err) => {

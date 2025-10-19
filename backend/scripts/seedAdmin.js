@@ -33,7 +33,7 @@ async function createAdminAccount() {
     } catch (error) {
         console.error('🔥 Error al crear la cuenta de administrador:', error);
     } finally {
-        db.end();
+        //db.end();
     }
 }
 
