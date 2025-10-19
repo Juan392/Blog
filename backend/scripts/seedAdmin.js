@@ -37,4 +37,4 @@ async function createAdminAccount() {
     }
 }
 
-createAdminAccount();
+module.exports = { createAdminAccount };
