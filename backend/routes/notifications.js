@@ -2,13 +2,16 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const { authenticateToken } = require('../middleware/auth');
+
 router.get('/', authenticateToken, async (req, res, next) => {
     try {
         const sql = `
-            SELECT id, message, created_at, is_read
-            FROM Notifications
-            WHERE user_id = ?
-            ORDER BY created_at DESC
+            SELECT n.id, n.message, n.created_at, n.is_read, n.related_id, n.type,
+                   u.full_name AS sender_name, u.profile_pic AS sender_profile_pic
+            FROM Notifications n
+            LEFT JOIN Users u ON n.sender_id = u.id
+            WHERE n.user_id = ?
+            ORDER BY n.created_at DESC
         `;
         const [notifications] = await db.query(sql, [req.user.userId]);
         res.json(notifications);
