@@ -4,8 +4,7 @@ import { API_BASE_URL, STATIC_BASE_URL } from './config.js';
 export const BOOKS_URL = `${API_BASE_URL}/books`;
 let currentPage = 1;
 const LIMIT = 10;
-
-const filter = window.Filter ? new window.Filter() : null;
+const filter = null;
 
 function sanitizeContent(content) {
     if (window.DOMPurify) {
@@ -98,9 +97,10 @@ export async function loadBooks(page = 1) {
                                     <a href="#" class="action-link me-3" onclick="shareBook(${book.id})">
                                         <span class="material-symbols-outlined" style="font-size: 16px;">share</span> Compartir
                                     </a>
-                                    <a href="#" class="action-link">
+                                    <a href="#" class="action-link" onclick="saveBook(${book.id})">
                                         <span class="material-symbols-outlined" style="font-size: 16px;">bookmark</span> Guardar
                                     </a>
+
                                 </div>
                             </div>
                         </div>
@@ -232,7 +232,7 @@ export async function deleteBook(bookId) {
 
 export async function shareBook(bookId) {
     try {
-        const url = `${window.location.origin}/book_detail.html?book_id=${bookId}`;
+        const url = `${window.location.origin}/comments.html?book_id=${bookId}`;
         if (navigator.share) {
             await navigator.share({
                 title: 'Mira este libro 📚',
@@ -248,3 +248,147 @@ export async function shareBook(bookId) {
         showToast('❌ No se pudo compartir el libro');
     }
 }
+
+
+const searchForm = document.getElementById('search-form');
+if (searchForm) {
+    searchForm.addEventListener('submit', (event) => {
+        event.preventDefault(); 
+        const searchInput = searchForm.querySelector('.search-bar');
+        const query = searchInput.value;
+        searchBooks(query);
+    });
+}
+
+export async function searchBooks(query) {
+    const mainContainer = document.querySelector('.library-container');
+    if (!query.trim()) {
+        loadBooks(); 
+        return;
+    }
+
+    mainContainer.innerHTML = '<p class="text-center">Buscando libros...</p>';
+
+    try {
+        const response = await fetch(`${BOOKS_URL}/search?q=${encodeURIComponent(query)}`, {
+            credentials: 'include'
+        });
+
+        if (!response.ok) throw new Error('No se pudieron buscar los libros.');
+
+        const data = await response.json();
+        const books = data.books || [];
+
+        if (books.length === 0) {
+            mainContainer.innerHTML = '<p class="text-center">No se encontraron libros.</p>';
+            return;
+        }
+
+        mainContainer.innerHTML = '';
+        books.forEach(book => {
+            const upvotes = book.upvotes || 0;
+            const commentsCount = book.comments_count || 0;
+            const displayUpvotes = upvotes >= 1000 ? `${(upvotes / 1000).toFixed(1)}K` : upvotes;
+            const sanitizedTitle = sanitizeContent(book.title);
+            const sanitizedSynopsis = sanitizeContent(book.synopsis || '');
+
+            const bookCardHTML = `
+                <div class="card book-card mb-4">
+                    <div class="card-body p-4 d-flex">
+                        <div class="upvote-section text-center me-4">
+                            <a href="#" class="text-decoration-none upvote-button" data-book-id="${book.id}">
+                                <span class="material-symbols-outlined">arrow_upward</span>
+                            </a>
+                            <span class="fw-bold d-block" id="upvotes-count-${book.id}">${displayUpvotes}</span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="card-title text-uppercase">${sanitizedTitle}</h5>
+                            <p class="card-author text-muted mb-2">Por ${sanitizeContent(book.author)}</p>
+                            <p class="card-synopsis">${sanitizedSynopsis}</p>
+                            <div class="action-buttons mb-3">
+                                <a href="${book.pdf_url ? STATIC_BASE_URL + book.pdf_url : '#'}" target="_blank" class="btn btn-primary btn-sm me-2">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">download</span> Descargar PDF
+                                </a>
+                                ${book.external_link ? `
+                                <a href="${book.external_link}" target="_blank" class="btn btn-primary btn-sm">
+                                    <span class="material-symbols-outlined" style="font-size: 16px;">open_in_new</span> Abrir enlace
+                                </a>` : ''}
+                            </div>
+                            <div class="book-stats mb-2">
+                                <span class="me-3"><strong>${commentsCount}</strong> comentarios</span>
+                            </div>
+                            <hr>
+                            <div class="card-footer-actions d-flex justify-content-between align-items-center">
+                                <a href="comments.html?book_id=${book.id}" class="comments-link">Ver comentarios</a>
+                                <div>
+                                    <a href="#" class="action-link me-3" onclick="shareBook(${book.id})">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">share</span> Compartir
+                                    </a>
+                                    <a href="#" class="action-link" onclick="saveBook(${book.id})">
+                                        <span class="material-symbols-outlined" style="font-size: 16px;">bookmark</span> Guardar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            mainContainer.insertAdjacentHTML('beforeend', bookCardHTML);
+            bindUpvoteEvents();
+        });
+    } catch (error) {
+        console.error('Error en searchBooks:', error);
+        mainContainer.innerHTML = `<p class="text-danger text-center">${error.message}</p>`;
+    }
+
+}
+
+export async function saveBook(bookId) {
+    try {
+        const res = await fetch(`${BOOKS_URL}/${bookId}/save`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+
+        let result = {};
+        try {
+            result = await res.json();
+        } catch {
+            // Si el servidor no devuelve JSON, se ignora
+        }
+
+        if (!res.ok) {
+            if (result.message?.toLowerCase().includes('ya')) {
+                showToast('📘 Ya habías guardado este libro.');
+            } else {
+                showToast(result.message || '❌ Error al guardar el libro.');
+            }
+            return;
+        }
+
+        // Éxito al guardar
+        showToast('📚 Libro guardado correctamente.');
+
+        // Si existe contenedor de bookmarks, agregarlo dinámicamente
+        const bookmarksContainer = document.querySelector('.bookmarks-container');
+        if (bookmarksContainer && !bookmarksContainer.querySelector(`#saved-book-${bookId}`)) {
+            const bookCard = document.createElement('div');
+            bookCard.className = 'card book-card mb-3';
+            bookCard.id = `saved-book-${bookId}`;
+            bookCard.innerHTML = `
+                <div class="card-body">
+                    <h5>📘 Libro guardado</h5>
+                    <p>El libro con ID <strong>${bookId}</strong> fue añadido a tus guardados.</p>
+                    <a href="comments.html?book_id=${bookId}" class="btn btn-primary btn-sm">Ver libro</a>
+                </div>
+            `;
+            bookmarksContainer.prepend(bookCard);
+        }
+
+    } catch (error) {
+        console.error('Error al guardar el libro:', error);
+        showToast('❌ No se pudo guardar el libro.');
+    }
+}
+
+window.saveBook = saveBook;
+window.shareBook = shareBook;

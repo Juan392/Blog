@@ -1,7 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
-const router = express.Router(); // ← este reemplaza tu "import router from ./auth"
+const router = express.Router();
 const db = require("../config/db"); 
 
 
@@ -36,7 +36,7 @@ router.post("/comments", upload.single("media"), async (req, res) => {
 
     res.status(200).json({ success: true, comment });
   } catch (error) {
-    console.error("Error al subir comentario:", error);
+    console.error("Error al subir comentario");
     res.status(500).json({ error: "Error al subir el comentario" });
   }
 });

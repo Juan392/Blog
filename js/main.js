@@ -1,13 +1,9 @@
-import { API_BASE_URL , STATIC_BASE_URL} from './config.js';
+import { API_BASE_URL, STATIC_BASE_URL } from './config.js';
 import { handleRegisterForm, handleLoginForm } from './auth.js';
 import { loadNotifications, handleProfilePage, loadHeaderProfile } from './notificationsAndProfile.js';
 import { loadBooks, handleBookUpload } from './books.js';
 import { handleCommentsPage } from './comments.js';
 
-/**
- * Muestra un mensaje temporal (toast) en la pantalla.
- * @param {string} message - El mensaje a mostrar.
- */
 export function showToast(message) {
     let toast = document.getElementById('custom-toast');
     if (!toast) {
@@ -26,20 +22,14 @@ export function showToast(message) {
         toast.style.zIndex = '9999';
         document.body.appendChild(toast);
     }
-
     toast.textContent = message;
     toast.style.opacity = '1';
     toast.style.transition = 'opacity 0.5s ease';
-
     setTimeout(() => {
         toast.style.opacity = '0';
     }, 2000);
 }
 
-/**
- * Función para comprobar si el usuario tiene sesión activa.
- * Llama al backend para verificar cookie HTTP-only.
- */
 async function checkSession() {
     try {
         const res = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
@@ -47,22 +37,16 @@ async function checkSession() {
             window.location.href = 'index.html';
             return null;
         }
-        const user = await res.json();
-        return user;
+        return await res.json();
     } catch (error) {
-        console.error('Error al verificar sesión:', error);
         window.location.href = 'index.html';
         return null;
     }
 }
 
-/**
- * Event Listener principal que se ejecuta cuando el DOM está completamente cargado.
- */
 document.addEventListener('DOMContentLoaded', async () => {
     const pagePath = window.location.pathname;
 
-    // Páginas públicas
     if (pagePath.includes('register.html')) {
         handleRegisterForm();
         return;
@@ -71,24 +55,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Verificar sesión activa en backend
     const user = await checkSession();
     if (!user) return;
 
-    // Carga elementos globales del header
+    if (user.role === 'admin') {
+        const adminBtn = document.getElementById('admin-dashboard-btn');
+        if (adminBtn) {
+            adminBtn.style.display = 'block';
+            adminBtn.addEventListener('click', () => window.location.href = 'admin-dashboard.html');
+        }
+    }
+
+    document.querySelectorAll('.upload-book-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            window.location.href = 'upload.html';
+        });
+    });
+
     try {
         loadNotifications();
         loadHeaderProfile(user);
     } catch (error) {
-        console.error('Error al cargar notificaciones o perfil del header:', error);
         showToast('Error al cargar elementos del header.');
     }
 
-    // Enrutador principal basado en la ruta de la página actual
     if (pagePath.includes('library.html')) {
         loadBooks(user);
     } else if (pagePath.includes('admin-dashboard.html')) {
-        import('./admin.js').then(module => module.handleAdminDashboard(user));
+        import('./admin-dashboard.js').then(module => module.handleAdminDashboard(user));
     } else if (pagePath.includes('upload.html')) {
         handleBookUpload(user);
     } else if (pagePath.includes('comments.html')) {
@@ -97,7 +91,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         handleProfilePage(user);
     }
 
-    // Botón de logout global
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
@@ -108,7 +101,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
                 window.location.href = 'index.html';
             } catch (error) {
-                console.error('Error al cerrar sesión:', error);
                 showToast('Error al cerrar sesión.');
             }
         });

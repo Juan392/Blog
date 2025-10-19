@@ -10,67 +10,112 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg app-navbar">
-        <div class="container-fluid">
-            <a class="navbar-brand d-flex align-items-center" href="library.html">
-                <span class="material-symbols-outlined me-2">menu_book</span>
-                Academia Books
+<nav class="navbar navbar-expand-lg app-navbar">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="library.html">
+            <span class="material-symbols-outlined me-2">menu_book</span>
+            Academia Books
+        </a>
+
+        <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav" aria-controls="mobileNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="material-symbols-outlined">menu</span>
+        </button>
+
+        <div class="collapse navbar-collapse d-lg-block">
+            <form class="d-flex mx-auto" role="search" id="search-form">
+                <input class="form-control me-2 search-bar" type="search" placeholder="Buscar libros o autores..." aria-label="Buscar">
+            </form>
+
+            <button id="admin-dashboard-btn" class="btn btn-secondary ms-3 btn-circular" style="display: none;">
+                <span class="material-symbols-outlined">dashboard</span>
+            </button>
+
+            <button id="upload-book-btn" class="btn btn-primary ms-3 btn-circular upload-book-btn">
+                <span class="material-symbols-outlined">upload</span>
+            </button>
+        </div>
+
+        <div class="d-lg-flex align-items-center d-none">
+            <a href="#" class="text-decoration-none text-secondary me-3 position-relative">
+                <span id="notification-icon" class="material-symbols-outlined">notifications</span>
+                <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill notification-badge" style="display: none;"></span>
             </a>
-            <div class="collapse navbar-collapse">
-                <form class="d-flex mx-auto" role="search">
-                    <input class="form-control me-2 search-bar" type="search" placeholder="Buscar libros o autores..." aria-label="Buscar">
-                </form>
-            </div>
-            <div class="d-flex align-items-center">
-                <a href="#" class="text-decoration-none text-secondary me-3 position-relative">
-                    <span id="notification-icon" class="material-symbols-outlined">notifications</span>
-                    <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill notification-badge" style="display: none;"></span>
+            <a href="profile.html" class="text-decoration-none text-secondary">
+                <div id="profile-icon-container">
+                    <img id="profile-pic-header" src="default-profile.svg" alt="Foto de perfil" class="rounded-circle" style="width: 40px; height: 40px;">
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end d-lg-none" tabindex="-1" id="mobileNav" aria-labelledby="mobileNavLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="mobileNavLabel">Menú</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form class="d-flex mb-3" role="search" id="search-form">
+                <input class="form-control me-2 search-bar" type="search" placeholder="Buscar libros o autores..." aria-label="Buscar">
+            </form>
+            <div class="d-flex justify-content-around align-items-center flex-wrap">
+                <button id="admin-dashboard-btn" class="btn btn-secondary btn-circular" style="display: none;">
+                    <span class="material-symbols-outlined">dashboard</span>
+                </button>
+                <a href="#" class="text-decoration-none text-secondary position-relative">
+                    <span id="mobile-notification-icon" class="material-symbols-outlined">notifications</span>
+                    <span id="mobile-notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill notification-badge" style="display: none;"></span>
                 </a>
                 <a href="profile.html" class="text-decoration-none text-secondary">
                     <div id="profile-icon-container">
                         <img id="profile-pic-header" src="default-profile.svg" alt="Foto de perfil" class="rounded-circle" style="width: 40px; height: 40px;">
                     </div>
                 </a>
+                <button id="upload-book-btn" class="btn btn-primary btn-circular">
+                    <span class="material-symbols-outlined">upload</span>
+                </button>
             </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <main class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-7">
-                <div class="card auth-card">
-                    <div class="card-body p-5">
-                        <h2 class="text-center mb-4">Upload New Book</h2>
-                        <form id="upload-form" enctype="multipart/form-data">  <!-- Agregado enctype -->
-                            <div class="mb-3">
-                                <label for="bookTitle" class="form-label">Book Title</label>
-                                <input type="text" class="form-control" id="bookTitle" name="title" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="author" class="form-label">Author</label>
-                                <input type="text" class="form-control" id="author" name="author" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="synopsis" class="form-label">Short Description / Synopsis</label>
-                                <textarea class="form-control" id="synopsis" name="synopsis" rows="3" required></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="pdfFile" class="form-label">Upload PDF File</label>
-                                <input class="form-control" type="file" id="pdfFile" name="pdfFile" accept=".pdf">
-                            </div>
-                            <div class="mb-4">
-                                <label for="externalLink" class="form-label">External Link</label>
-                                <input type="url" class="form-control" id="externalLink" name="external_link">
-                            </div>
-                            <button class="w-100 btn btn-lg btn-primary" type="submit">Publish Book</button>
-                        </form>
-                    </div>
+<main class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="row w-100 justify-content-center">
+        <div class="col-lg-7 col-md-8 col-sm-10">
+            <div class="card auth-card shadow-lg">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">Upload New Book</h2>
+                    <form id="upload-form" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="bookTitle" class="form-label">Book Title</label>
+                            <input type="text" class="form-control" id="bookTitle" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="author" class="form-label">Author</label>
+                            <input type="text" class="form-control" id="author" name="author" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="synopsis" class="form-label">Short Description / Synopsis</label>
+                            <textarea class="form-control" id="synopsis" name="synopsis" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pdfFile" class="form-label">Upload PDF File</label>
+                            <input class="form-control" type="file" id="pdfFile" name="pdfFile" accept=".pdf">
+                        </div>
+                        <div class="mb-4">
+                            <label for="externalLink" class="form-label">External Link</label>
+                            <input type="url" class="form-control" id="externalLink" name="external_link">
+                        </div>
+                        <button class="w-100 btn btn-lg btn-primary" type="submit">Publish Book</button>
+                    </form>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
+</main>
 
-    <script src="https://unpkg.com/bad-words@3.0.4/badwords.min.js"></script>
-    <script type="module" src="../js/main.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/bad-words@3.0.4/badwords.min.js"></script>
+<script type="module" src="../js/main.js"></script>
+
 </body>
 </html>

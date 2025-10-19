@@ -1,12 +1,9 @@
-import { API_BASE_URL } from './config.js'; 
-import { showToast } from './main.js'; 
-import { USERS_URL } from './notificationsAndProfile.js'; 
+import { API_BASE_URL } from './config.js';
+import { showToast } from './main.js';
 
-// -------------------- CONSTANTES --------------------
 export const AUTH_URL = `${API_BASE_URL}/auth`;
 export const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-// -------------------- REGISTRO --------------------
 export function handleRegisterForm() {
     const form = document.querySelector('#register-form');
     if (!form) return;
@@ -24,8 +21,7 @@ export function handleRegisterForm() {
             const response = await fetch(`${AUTH_URL}/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-                credentials: 'include'
+                body: JSON.stringify(data)
             });
 
             const result = await response.json();
@@ -34,23 +30,26 @@ export function handleRegisterForm() {
             showToast(result.message || 'Registro exitoso.');
             window.location.href = 'index.html';
         } catch (error) {
-            console.error('❌ Error de conexión:', error);
             showToast('Error de conexión con el servidor.');
         }
     });
 }
 
-// -------------------- LOGIN --------------------
 export function handleLoginForm() {
     const form = document.querySelector('#login-form');
     if (!form) return;
+    const submitButton = form.querySelector('button[type="submit"]');
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
         const data = Object.fromEntries(new FormData(form).entries());
 
         if (data.email && !isValidEmail(data.email)) {
-            return showToast("Por favor, introduce una dirección de correo electrónico válida.");
+            return showToast("Por favor, introduce un correo válido.");
+        }
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Iniciando...';
         }
 
         try {
@@ -62,18 +61,28 @@ export function handleLoginForm() {
             });
 
             const result = await response.json();
-            if (!response.ok) return showToast(`Error: ${result.message || 'Error desconocido.'}`);
-
+            if (!response.ok) {
+                if (response.status === 403) {
+                    showToast(result.message || 'Tu cuenta no ha sido verificada.');
+                } else {
+                    showToast(result.message || 'Credenciales incorrectas.');
+                }
+                return;
+            }
             showToast('Inicio de sesión exitoso.');
             window.location.href = 'library.html';
+
         } catch (error) {
-            console.error('❌ Error de conexión:', error);
             showToast('Error de conexión con el servidor.');
+        } finally {
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Log In';
+            }
         }
     });
 }
 
-// -------------------- LOGOUT --------------------
 export function handleLogout() {
     fetch(`${AUTH_URL}/logout`, {
         method: 'POST',
@@ -83,24 +92,21 @@ export function handleLogout() {
     });
 }
 
-// -------------------- OBTENER USUARIO AUTENTICADO --------------------
-export async function getCurrentUser() {
+export async function checkSession() {
     try {
-        const response = await fetch(`${USERS_URL}/me`, {
+        const response = await fetch(`${AUTH_URL}/me`, {
             method: 'GET',
             credentials: 'include'
         });
 
         if (!response.ok) {
-            console.warn('⚠️ No se pudo obtener el usuario actual:', response.status);
+            window.location.href = 'index.html';
             return null;
         }
 
-        const user = await response.json();
-        console.log('👤 Usuario actual obtenido:', user);
-        return user;
+        return await response.json();
     } catch (error) {
-        console.error('❌ Error obteniendo el usuario actual:', error);
+        window.location.href = 'index.html';
         return null;
     }
 }

@@ -6,116 +6,137 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
+const sharp = require('sharp');
 
-// -------------------- CONFIG MULTER --------------------
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
+const upload = multer({
+    storage: multer.memoryStorage(),
+    fileFilter: function (req, file, cb) {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            req.fileError = 'Solo se permiten archivos de imagen.';
+            cb(null, false);
+        }
+    }
 });
-const upload = multer({ storage });
-
-// -------------------- RUTAS USUARIO --------------------
 
 // GET perfil del usuario
 router.get('/me', authenticateToken, async (req, res, next) => {
   try {
-    console.log(`Solicitud GET /me para usuario ID: ${req.user.userId}`);
     const sql = 'SELECT id, full_name, email, role, profile_pic FROM Users WHERE id = ?';
     const [users] = await db.query(sql, [req.user.userId]);
     if (users.length === 0) {
-      console.log('Usuario no encontrado en la base de datos.');
       return res.status(404).json({ message: 'Usuario no encontrado.' });
     }
-    console.log('Perfil de usuario enviado:', users[0]);
+    // Log seguro
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`GET /me para usuario ID: ${req.user.userId}`);
+    }
     res.json(users[0]);
   } catch (err) {
-    console.error('Error en GET /me:', err);
+    console.error('Error en GET /me'); // Sin exponer datos sensibles
     next(err);
   }
 });
 
-// PATCH actualizar datos del usuario (nombre, email y contraseña)
+// PATCH actualizar datos del usuario (email y contraseña)
 router.patch('/me', authenticateToken, async (req, res, next) => {
   try {
-    console.log('Solicitud PATCH /me recibida:', req.body);
-    const { full_name, email, password, current_password } = req.body || {};
+    const { email, password, current_password } = req.body || {};
 
-    if (!full_name || !email) {
-      console.log('Error: full_name y email son obligatorios. Solicitud recibida:', req.body);
-      return res.status(400).json({ message: 'full_name y email son obligatorios.' });
+    if (!email && !password) {
+      return res.status(400).json({ message: 'Debes enviar al menos email o contraseña para actualizar.' });
     }
 
     const userId = req.user.userId;
 
     if (password) {
-      console.log('Verificando contraseña actual para usuario ID:', userId);
-      const [users] = await db.query('SELECT password_hash FROM Users WHERE id = ?', [userId]);
-      if (users.length === 0) {
-        console.log('Usuario no encontrado para actualización de contraseña.');
-        return res.status(404).json({ message: 'Usuario no encontrado.' });
+      if (!current_password) {
+        return res.status(400).json({ message: 'Debes proporcionar la contraseña actual para cambiar la contraseña.' });
       }
+
+      const [users] = await db.query('SELECT password_hash FROM Users WHERE id = ?', [userId]);
+      if (users.length === 0) return res.status(404).json({ message: 'Usuario no encontrado.' });
 
       const match = await bcrypt.compare(current_password, users[0].password_hash);
-      if (!match) {
-        console.log('Contraseña actual incorrecta para usuario ID:', userId);
-        return res.status(400).json({ message: 'Contraseña actual incorrecta.' });
-      }
+      if (!match) return res.status(400).json({ message: 'Contraseña actual incorrecta.' });
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      await db.query('UPDATE Users SET full_name = ?, email = ?, password_hash = ? WHERE id = ?', 
-        [full_name, email, hashedPassword, userId]);
-      console.log('Usuario actualizado exitosamente con nueva contraseña para ID:', userId);
+      await db.query(
+        'UPDATE Users SET email = COALESCE(?, email), password_hash = ? WHERE id = ?',
+        [email, hashedPassword, userId]
+      );
+
+      if (process.env.NODE_ENV !== 'production') console.log(`Usuario ID ${userId} actualizado con nueva contraseña`);
     } else {
-      await db.query('UPDATE Users SET full_name = ?, email = ? WHERE id = ?', [full_name, email, userId]);
-      console.log('Usuario actualizado exitosamente sin contraseña para ID:', userId);
+      await db.query(
+        'UPDATE Users SET email = COALESCE(?, email) WHERE id = ?',
+        [email, userId]
+      );
+      if (process.env.NODE_ENV !== 'production') console.log(`Usuario ID ${userId} actualizado sin cambiar contraseña`);
     }
 
     res.status(200).json({ message: 'Datos actualizados exitosamente.' });
   } catch (err) {
-    console.error('Error en PATCH /me:', err);
+    console.error('Error en PATCH /me');
     next(err);
   }
 });
 
-// PATCH subir imagen de perfil
 router.patch('/me/profile-pic', authenticateToken, upload.single('profile_pic'), async (req, res, next) => {
-  try {
-    console.log('Solicitud PATCH /me/profile-pic recibida:', req.body, req.file);
-    if (!req.file) {
-      console.log('Error: No se subió ninguna imagen.');
-      return res.status(400).json({ message: 'No se subió ninguna imagen.' });
+    try {
+        if (req.fileError) return res.status(400).json({ message: req.fileError });
+        if (!req.file) return res.status(400).json({ message: 'No se subió ninguna imagen.' });
+
+        const filename = `${req.user.userId}-${Date.now()}.webp`;
+        const outputPath = path.join(__dirname, '../uploads', filename);
+
+        await sharp(req.file.buffer)
+            .resize({ width: 500, fit: 'inside' })
+            .webp({ quality: 80 })
+            .toFile(outputPath);
+
+        const profilePicPath = `/uploads/${filename}`;
+        await db.query('UPDATE Users SET profile_pic = ? WHERE id = ?', [profilePicPath, req.user.userId]);
+
+        res.status(200).json({ message: 'Imagen de perfil actualizada.', profile_pic: profilePicPath });
+    } catch (err) {
+        console.error('Error en PATCH /me/profile-pic');
+        next(err);
     }
-
-    const profilePicPath = `/uploads/${req.file.filename}`;
-    const userId = req.user.userId;
-
-    await db.query('UPDATE Users SET profile_pic = ? WHERE id = ?', [profilePicPath, userId]);
-    console.log('Imagen de perfil actualizada para usuario ID:', userId, 'Nueva ruta:', profilePicPath);
-
-    res.status(200).json({ message: 'Imagen de perfil actualizada.', profile_pic: profilePicPath });
-  } catch (err) {
-    console.error('Error en PATCH /me/profile-pic:', err);
-    next(err);
-  }
 });
 
-// GET actividad del usuario
+// GET /api/users/me/activity
 router.get('/me/activity', authenticateToken, async (req, res, next) => {
-  try {
-  
-    const userId = req.user.userId;
-    const [comments] = await db.query('SELECT * FROM Comments WHERE user_id = ?', [userId]);
-    const [books] = await db.query('SELECT * FROM Books WHERE uploader_id = ?', [userId]);
-    res.status(200).json({ comments, books });
-  } catch (err) {
-    next(err);
-  }
+    try {
+        const userId = req.user.userId;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const [comments] = await db.query(
+            `SELECT 'comment' as type, id as related_id, book_id, content as details, created_at as date 
+             FROM Comments WHERE user_id = ?`,
+            [userId]
+        );
+        const [books] = await db.query(
+            `SELECT 'book_upload' as type, id as related_id, id as book_id, title as details, created_at as date 
+             FROM Books WHERE uploader_id = ?`, 
+            [userId]
+        );
+        const allActivities = [...comments, ...books].sort((a, b) => new Date(b.date) - new Date(a.date));
+        const totalItems = allActivities.length;
+        const totalPages = Math.ceil(totalItems / limit);
+        const offset = (page - 1) * limit;
+        const paginatedActivities = allActivities.slice(offset, offset + limit);
+        res.json({
+            activities: paginatedActivities,
+            totalPages,
+            currentPage: page
+        });
+
+    } catch (error) {
+        console.error('Error en GET /me/activity');
+        next(error);
+    }
 });
 
 // GET usuario por ID
@@ -124,13 +145,12 @@ router.get('/:id', authenticateToken, async (req, res, next) => {
     const { id } = req.params;
     const [users] = await db.query('SELECT id, full_name, email, role, profile_pic FROM Users WHERE id = ?', [id]);
     if (users.length === 0) {
-      console.log('Usuario no encontrado para ID:', id);
       return res.status(404).json({ message: 'Usuario no encontrado.' });
     }
-    console.log('Usuario enviado:', users[0]);
+    if (process.env.NODE_ENV !== 'production') console.log(`GET /users/:id para usuario ID: ${id}`);
     res.json(users[0]);
   } catch (err) {
-    console.error('Error en GET /:id:', err);
+    console.error('Error en GET /:id');
     next(err);
   }
 });
@@ -141,7 +161,7 @@ router.get('/', authenticateToken, isAdmin, async (req, res, next) => {
     const [users] = await db.query('SELECT id, full_name, email, role, profile_pic FROM Users');
     res.json(users);
   } catch (err) {
-    console.error('Error en GET /:', err);
+    console.error('Error en GET /');
     next(err);
   }
 });
@@ -158,24 +178,54 @@ router.patch('/:id/role', authenticateToken, isAdmin, async (req, res, next) => 
     await db.query('UPDATE Users SET role = ? WHERE id = ?', [role, id]);
     res.status(200).json({ message: 'Rol de usuario actualizado.' });
   } catch (err) {
+    console.error('Error en PATCH /:id/role');
     next(err);
   }
 });
 
-// POST subir libros
-router.post('/books', authenticateToken, async (req, res, next) => {
-  try {
-    const { title, author, synopsis, pdf_link, external_link } = req.body;
-    const userId = req.user.userId;
+// DELETE usuario (solo admin)
+router.delete('/:id', authenticateToken, isAdmin, async (req, res, next) => {
+    const { id } = req.params;
+    const connection = await db.getConnection();
 
-    await db.query(
-      'INSERT INTO Books (title, author, synopsis, pdf_link, external_link, uploader_id) VALUES (?, ?, ?, ?, ?, ?)',
-      [title, author, synopsis, pdf_link, external_link, userId]
-    );
-    res.status(201).json({ message: 'Libro subido exitosamente.' });
-  } catch (err) {
-    next(err);
-  }
+    try {
+        await connection.beginTransaction();
+        await connection.query('DELETE FROM CommentLikes WHERE user_id = ?', [id]);
+        await connection.query('DELETE FROM Notifications WHERE sender_id = ? OR user_id = ?', [id, id]);
+        await connection.query('DELETE FROM Comments WHERE user_id = ?', [id]);
+        await connection.query('DELETE FROM BookVotes WHERE user_id = ?', [id]);
+        await connection.query('DELETE FROM Books WHERE uploader_id = ?', [id]);
+        const [result] = await connection.query('DELETE FROM Users WHERE id = ?', [id]);
+        await connection.commit();
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Usuario no encontrado.' });
+        }
+        res.status(200).json({ message: 'Usuario y todo su contenido asociado han sido eliminados.' });
+    } catch (error) {
+        await connection.rollback();
+        console.error("Error al eliminar el usuario");
+        next(error);
+    } finally {
+        connection.release();
+    }
+});
+
+// GET bookmarks de un usuario
+router.get('/:id/bookmarks', authenticateToken, async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const sql = `
+            SELECT b.* FROM Books b
+            JOIN Bookmarks bm ON b.id = bm.book_id
+            WHERE bm.user_id = ?
+            ORDER BY bm.created_at DESC
+        `;
+        const [books] = await db.query(sql, [id]);
+        res.json({ books });
+    } catch (error) {
+        console.error('Error en GET /:id/bookmarks');
+        next(error);
+    }
 });
 
 module.exports = router;

@@ -87,6 +87,15 @@ hr {
     border-color: #0a58ca;
 }
 
+.btn-secondary {
+    background-color: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+}
+.btn-secondary:hover {
+    background-color: var(--color-border);
+}
+
 /* --- Tarjetas (Contenedores) --- */
 .auth-card, .book-card, .card {
     background-color: var(--color-surface);
@@ -140,6 +149,128 @@ a:hover > .material-symbols-outlined {
 .card-title {
     font-weight: 700;
     color: var(--color-text-primary);
+}
+
+/* --- Página de Library --- */
+.library-container {
+    padding: 2rem 0;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.library-container .book-card {
+    margin-bottom: 2rem;
+    transition: transform 0.2s;
+}
+.library-container .book-card:hover {
+    transform: translateY(-5px);
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.pagination-container button {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.pagination-container button:hover {
+    background-color: var(--color-border);
+}
+.pagination-container button.btn-primary {
+    background-color: var(--color-accent-blue);
+    border-color: var(--color-accent-blue);
+}
+
+/* --- Formularios de Auth --- */
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.auth-card {
+    max-width: 400px;
+    width: 100%;
+    padding: 2rem;
+}
+
+.auth-card .form-control {
+    margin-bottom: 1rem;
+}
+
+.auth-card .btn {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+/* --- Formulario de Upload de Libro --- */
+.auth-card {
+    max-width: 600px;           
+    margin: 0 auto;            
+    padding: 2rem;           
+    background-color: var(--color-surface); 
+    border-radius: 12px;       
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); 
+    transition: transform 0.2s, box-shadow 0.2s; 
+}
+
+/* Hover para efecto interactivo */
+.auth-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* Estilos para inputs y textarea */
+.auth-card .form-control {
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+}
+
+/* Botón de subir libro */
+.auth-card .btn {
+    width: 100%;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-size: 1rem;
+}
+
+/* Para responsividad en pantallas pequeñas */
+@media (max-width: 576px) {
+    .auth-card {
+        padding: 1.5rem;
+    }
+}
+
+/* --- Página de Comentarios --- */
+.comments-section {
+    padding: 2rem 0;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.comments-list {
+    margin-top: 2rem;
+}
+
+.filter-container {
+    margin-bottom: 2rem;
+}
+
+.filter-container .btn {
+    margin-right: 0.5rem;
 }
 
 /* ==========================================================================
@@ -211,8 +342,6 @@ a:hover > .material-symbols-outlined {
     text-decoration: underline;
 }
 
-
-
 /* --- Ajuste: todas las respuestas al mismo nivel --- */
 .replies {
     display: flex;
@@ -278,7 +407,7 @@ a:hover > .material-symbols-outlined {
 }
 
 /* ==========================================================================
-   4. Diseño Responsive
+   4. Diseño Responsive (Mejorado)
    ========================================================================== */
 @media (max-width: 992px) {
     .search-bar {
@@ -291,10 +420,55 @@ a:hover > .material-symbols-outlined {
         align-items: flex-start;
         gap: 0.75rem;
     }
+    .upvote-section {
+        margin-bottom: 1rem;
+    }
+    .card-title {
+        font-size: 1.25rem;
+    }
+    .library-container {
+        padding: 1rem;
+    }
+    .auth-container {
+        padding: 1rem;
+    }
+    .upload-form {
+        padding: 1rem;
+    }
 }
 
 @media (max-width: 768px) {
     .comment-card {
+        padding: 1rem;
+        gap: 0.5rem;
+    }
+    .comment-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    .comment-footer {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .action-link {
+        font-size: 0.85rem;
+    }
+    .upvote-section .upvote-button .material-symbols-outlined {
+        font-size: 28px;
+    }
+    .card-body {
+        padding: 1rem;
+    }
+    .btn {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+    .pagination-container button {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+    .comments-section {
         padding: 1rem;
     }
 }
@@ -318,4 +492,138 @@ a:hover > .material-symbols-outlined {
         width: 35px;
         height: 35px;
     }
+    .comment-card {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    .comment-avatar {
+        width: 35px;
+        height: 35px;
+    }
+    .material-symbols-outlined {
+        font-size: 24px;
+    }
+    .upvote-section {
+        text-align: center;
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+    .upvote-section .upvote-button .material-symbols-outlined {
+        font-size: 24px;
+    }
+    .card-title {
+        font-size: 1.1rem;
+    }
+    .card-author, .card-synopsis {
+        font-size: 0.9rem;
+    }
+    .action-buttons a {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.5rem;
+    }
+    .auth-card {
+        padding: 1rem;
+    }
+    .upload-form {
+        padding: 1rem;
+    }
+}
+
+/* Agregado para móviles pequeños */
+@media (max-width: 480px) {
+    body {
+        font-size: 14px;
+    }
+    .comment-card {
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+    .comment-content {
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+    .comment-footer {
+        gap: 0.25rem;
+    }
+    .action-link {
+        font-size: 0.8rem;
+        padding: 0.25rem;
+    }
+    .circular-button {
+        width: 32px;
+        height: 32px;
+    }
+    .comment-input-wrapper {
+        gap: 4px;
+    }
+    .comment-input-wrapper textarea {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.6rem;
+        min-height: 35px;
+    }
+    .upvote-section .upvote-button {
+        padding: 0.5rem;
+    }
+    .upvote-section .upvote-button .material-symbols-outlined {
+        font-size: 20px;
+    }
+    .card-body {
+        padding: 0.75rem !important;
+    }
+    .btn-primary {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+    }
+    .search-bar {
+        font-size: 0.9rem;
+        padding: 0.5rem;
+    }
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    .notification-badge {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.4rem;
+    }
+    .replies .comment-card {
+        padding-left: 2rem;
+    }
+    .replies .comment-card::before {
+        left: 1rem;
+    }
+    .library-container {
+        padding: 0.5rem;
+    }
+    .pagination-container {
+        gap: 0.25rem;
+    }
+    .pagination-container button {
+        padding: 0.3rem 0.6rem;
+    }
+}
+
+.offcanvas {
+  background-color: #212529; 
+  color: #f8f9fa; 
+}
+
+
+.offcanvas-title {
+  color: #f8f9fa;
+}
+
+.offcanvas .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.offcanvas-body a, .offcanvas-body .text-secondary {
+    color: #dee2e6 !important; 
+}
+.hover-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+.hover-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
 }

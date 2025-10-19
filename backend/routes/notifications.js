@@ -10,7 +10,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
                    u.full_name AS sender_name, u.profile_pic AS sender_profile_pic
             FROM Notifications n
             LEFT JOIN Users u ON n.sender_id = u.id
-            WHERE n.user_id = ?
+            WHERE n.user_id = ? AND n.is_read = FALSE
             ORDER BY n.created_at DESC
         `;
         const [notifications] = await db.query(sql, [req.user.userId]);
@@ -19,6 +19,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
         next(error);
     }
 });
+
 
 router.put('/:id/read', authenticateToken, async (req, res, next) => {
     try {

@@ -10,16 +10,23 @@
 </head>
 <body>
 
+    <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg app-navbar">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="library.html">
                 <span class="material-symbols-outlined me-2">menu_book</span>
                 Academia Books
             </a>
-            <div class="collapse navbar-collapse">
+            <div class="collapse navbar-collapse justify-content-end">
                 <form class="d-flex mx-auto" role="search">
                     <input class="form-control me-2 search-bar" type="search" placeholder="Buscar libros o autores..." aria-label="Buscar">
                 </form>
+                <button id="admin-dashboard-btn" class="btn btn-secondary ms-3 btn-circular" style="display: none;">
+                    <span class="material-symbols-outlined">dashboard</span>
+                </button>
+                <button id="upload-book-btn" class="btn btn-primary ms-3 btn-circular">
+                    <span class="material-symbols-outlined">upload</span>
+                </button>
             </div>
             <div class="d-flex align-items-center">
                 <a href="#" class="text-decoration-none text-secondary me-3 position-relative">
@@ -35,8 +42,9 @@
         </div>
     </nav>
 
+    <!-- REGISTER FORM -->
     <div class="container d-flex justify-content-center align-items-center" style="padding-top: 5rem; padding-bottom: 5rem;">
-        <div class="card auth-card">
+        <div class="card auth-card hover-card">
             <div class="card-body p-5">
                 <div class="text-center mb-4">
                     <h1 class="h3 mb-3 fw-normal">Create Your Account</h1>
@@ -60,13 +68,72 @@
                         <label for="confirmPassword">Confirm Password</label>
                     </div>
                     <button class="w-100 btn btn-lg btn-primary" type="submit">Sign Up</button>
-                    <p class="mt-4 text-center text-muted">Already have an account? <a href="index.html">Log In</a></p>
+
+                    <p class="mt-4 text-center text-muted">
+                        Already have an account? <a href="index.html">Log In</a>
+                    </p>
+
+                    <!-- POLÍTICA DE PRIVACIDAD -->
+                    <div class="mt-3 text-center small text-muted">
+                        Al registrarte, aceptas nuestras 
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal" class="text-decoration-none text-primary fw-semibold">
+                            Políticas de Privacidad
+                        </a>.
+                    </div>
                 </form>
             </div>
         </div>
     </div>
-    
-<script type="module" src="../js/main.js"></script>
+
+    <!-- MODAL DE POLÍTICA DE PRIVACIDAD -->
+    <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content auth-card">
+          <div class="modal-header border-0">
+            <h5 class="modal-title text-primary" id="privacyModalLabel">Política de Privacidad</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body card-body text-light">
+            <h2 class="h5 text-primary mb-3">Política de Privacidad de Academia Books</h2>
+            <p><strong>Última actualización:</strong> 19 de octubre de 2025</p>
+
+            <p>En <strong>Academia Books</strong> valoramos tu privacidad y la protección de tus datos personales. Esta política describe cómo recopilamos, utilizamos y protegemos tu información.</p>
+
+            <h3 class="mt-4 text-primary">1. Información que recopilamos</h3>
+            <ul>
+              <li>Nombre completo y correo electrónico para tu cuenta.</li>
+              <li>Contraseña encriptada mediante <code>bcrypt</code>.</li>
+              <li>Libros, comentarios y archivos subidos a la plataforma.</li>
+              <li>Cookies seguras de sesión para mantener tu inicio de sesión.</li>
+            </ul>
+
+            <h3 class="mt-4 text-primary">2. Uso de la información</h3>
+            <p>Utilizamos tu información para autenticar usuarios, mejorar la seguridad, enviar notificaciones y personalizar tu experiencia.</p>
+
+            <h3 class="mt-4 text-primary">3. Protección de datos</h3>
+            <p>Aplicamos medidas de seguridad como cifrado, HTTPS y tokens JWT para proteger tus datos contra accesos no autorizados.</p>
+
+            <h3 class="mt-4 text-primary">4. Tus derechos</h3>
+            <p>Puedes acceder, modificar o eliminar tu cuenta cuando lo desees escribiéndonos a <strong>academiabooksvalid@gmail.com</strong>.</p>
+
+            <h3 class="mt-4 text-primary">5. Cambios a esta política</h3>
+            <p>Nos reservamos el derecho de actualizar esta política. Los cambios se reflejarán en esta misma página.</p>
+
+            <h3 class="mt-4 text-primary">6. Contacto</h3>
+            <p>Para consultas o solicitudes, escríbenos a <strong>academiabooksvalid@gmail.com</strong>.</p>
+
+            <p class="text-center mt-4 small text-muted">© 2025 Academia Books. Todos los derechos reservados.</p>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="../js/main.js"></script>
 
 </body>
 </html>

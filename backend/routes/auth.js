@@ -4,6 +4,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { authenticateToken } = require('../middleware/auth');
+const { sendVerificationEmail } = require('../utils/mailer');
+const crypto = require('crypto'); 
 
 // POST /api/auth/register
 router.post('/register', async (req, res, next) => { 
@@ -15,13 +17,32 @@ router.post('/register', async (req, res, next) => {
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
-        const sql = 'INSERT INTO Users (full_name, email, password_hash) VALUES (?, ?, ?)';
-        const [result] = await db.query(sql, [fullName, email, passwordHash]);
+        let userRole = 'user';
+        if (email === process.env.ADMIN_EMAIL) {
+            userRole = 'admin';
+        }
+
+        const sql = 'INSERT INTO Users (full_name, email, password_hash, role) VALUES (?, ?, ?, ?)';
+        const [result] = await db.query(sql, [fullName, email, passwordHash, userRole]);
+        const userId = result.insertId;
+
+        // Generar token de verificación (24h)
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 1); // 1 día
+
+        await db.query(
+            'UPDATE Users SET verification_token = ?, token_expiry = ? WHERE id = ?',
+            [verificationToken, expiryDate, userId]
+        );
+
+        await sendVerificationEmail(email, verificationToken);
 
         res.status(201).json({ 
-            message: 'Usuario registrado con éxito.',
+            message: 'Usuario registrado. Por favor, revisa tu correo para verificar la cuenta.',
             userId: result.insertId
         });
+        
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ message: 'El correo electrónico ya está registrado.' });
@@ -40,26 +61,34 @@ router.post('/login', async (req, res, next) => {
 
         const sql = 'SELECT * FROM Users WHERE email = ?';
         const [users] = await db.query(sql, [email]);
-        if (users.length === 0) return res.status(401).json({ message: 'Credenciales inválidas.' });
+        if (users.length === 0) {
+            return res.status(401).json({ message: 'Credenciales inválidas.' });
+        }
 
         const user = users[0];
         const isPasswordCorrect = await bcrypt.compare(password, user.password_hash);
-        if (!isPasswordCorrect) return res.status(401).json({ message: 'Credenciales inválidas.' });
+        if (!isPasswordCorrect) {
+            return res.status(401).json({ message: 'Credenciales inválidas.' });
+        }
 
-        // Generar token
+        if (user.status !== 'verified') {
+            return res.status(403).json({ message: 'Tu cuenta no ha sido verificada. Por favor, revisa tu correo electrónico.' });
+        }
+
+        // Token válido por 7 días
         const payload = { userId: user.id, role: user.role };
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-        // Guardar token y expiración en DB
-        const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1h
+        // Fecha de expiración (1 semana)
+        const expiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
         await db.query('UPDATE Users SET verification_token = ?, token_expiry = ? WHERE id = ?', [token, expiry, user.id]);
 
-        // Enviar cookie HTTP-only
+        // Cookie HttpOnly válida por 7 días
         res.cookie('sessionToken', token, {
             httpOnly: true,
-            maxAge: 60 * 60 * 1000, // 1h en ms
+            maxAge: 7 * 24 * 60 * 60 * 1000,
             sameSite: 'Lax',
-            secure: false, //process.env.NODE_ENV === 'production' // solo en HTTPS
+            secure: process.env.NODE_ENV === 'production',
             path: '/'
         });
 
@@ -72,12 +101,11 @@ router.post('/login', async (req, res, next) => {
 
 // POST /api/auth/logout
 router.post('/logout', (req, res) => {
-    res.clearCookie('sessionToken');
-    res.json({ message: 'Sesión cerrada.' });
+   res.clearCookie('sessionToken');
+   res.json({ message: 'Sesión cerrada.' });
 });
 
-
-// ✅ ==================== NUEVA RUTA: /me ====================
+// GET /api/auth/me
 router.get('/me', authenticateToken, async (req, res) => {
   try {
     const [users] = await db.query(
@@ -89,10 +117,35 @@ router.get('/me', authenticateToken, async (req, res) => {
 
     res.status(200).json(users[0]);
   } catch (err) {
-    console.error('Error en /me:', err);
+    console.error('Error en /me:');
     res.status(500).json({ message: 'Error del servidor.' });
   }
 });
 
+// GET /api/auth/verify-email
+router.get('/verify-email', async (req, res, next) => {
+    try {
+        const { token } = req.query;
+        if (!token) {
+            return res.status(400).send('<h1>Error</h1><p>Token de verificación no proporcionado.</p>');
+        }
 
-module.exports = router;    
+        const sql = "SELECT * FROM Users WHERE verification_token = ? AND token_expiry > NOW() AND status = 'unverified'";
+        const [users] = await db.query(sql, [token]);
+        if (users.length === 0) {
+            return res.status(400).send('<h1>Error</h1><p>El token es inválido, ha expirado o la cuenta ya fue verificada. Por favor, intenta registrarte de nuevo.</p>');
+        }
+
+        const user = users[0];
+        await db.query(
+            "UPDATE Users SET status = 'verified', verification_token = NULL, token_expiry = NULL WHERE id = ?",
+            [user.id]
+        );
+        res.send('<h1>¡Correo verificado exitosamente! ✅</h1><p>Ya puedes cerrar esta ventana e iniciar sesión en Academia Books.</p>');
+
+    } catch (error) {
+        next(error);
+    }
+});
+
+module.exports = router;

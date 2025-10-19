@@ -8,7 +8,7 @@ async function createNotification(userId, senderId, message, type, relatedId = n
         `;
         await db.query(sql, [userId, senderId, message, type, relatedId]);
     } catch (error) {
-        console.error('Error al crear notificación:', error);
+        console.error('Error al crear notificación');
     }
 }
 

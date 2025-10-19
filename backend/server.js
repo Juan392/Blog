@@ -4,22 +4,46 @@ const cors = require('cors');
 const morgan = require('morgan');
 const db = require('./config/db');
 const path = require('path');
-const fs = require('fs');  // Importa fs aquí
+const fs = require('fs');
+const cookieParser = require('cookie-parser');
+const cron = require('node-cron');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middlewares
 app.use(cors({
-    origin: ['http://127.0.0.1:5500', 'http://localhost:5500'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    origin: ['http://127.0.0.1:5500'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
-const cookieParser = require('cookie-parser');
-app.use(cookieParser()); // ✅ Importación
+
+app.use(cookieParser()); 
+cron.schedule('0 0 * * *', async () => {
+    console.log('🗑️ Ejecutando tarea de limpieza de usuarios no verificados...');
+    try {
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const sql = `
+            DELETE FROM Users 
+            WHERE status = 'unverified' 
+            AND created_at < ?
+        `;
+        
+        // 3. Ejecuta la consulta.
+        const [result] = await db.query(sql, [twentyFourHoursAgo]);
+
+        if (result.affectedRows > 0) {
+            console.log(`✅ Tarea de limpieza completada. Se eliminaron ${result.affectedRows} usuarios.`);
+        } else {
+            console.log('🧹 No se encontraron usuarios para eliminar.');
+        }
+    } catch (error) {
+        console.error('❌ Error durante la tarea de limpieza:', error);
+    }
+});
 
 
 // Sirviendo archivos estáticos

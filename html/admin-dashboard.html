@@ -6,91 +6,136 @@
     <title>Admin Dashboard - Academia Books</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
-
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg app-navbar">
-        <div class="container-fluid">
-            <a class="navbar-brand d-flex align-items-center" href="library.html">
-                <span class="material-symbols-outlined me-2">menu_book</span>
-                Academia Books
+<nav class="navbar navbar-expand-lg app-navbar">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="library.html">
+            <span class="material-symbols-outlined me-2">menu_book</span>
+            Academia Books
+        </a>
+
+        <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav" aria-controls="mobileNav">
+            <span class="material-symbols-outlined">menu</span>
+        </button>
+
+        <div class="collapse navbar-collapse d-none d-lg-flex">
+            <form class="d-flex mx-auto" role="search" id="search-form">
+                <input class="form-control me-2 search-bar" type="search" placeholder="Buscar libros o autores..." aria-label="Buscar">
+            </form>
+            <button id="admin-dashboard-btn" class="btn btn-secondary ms-3 btn-circular" style="display: none;">
+                <span class="material-symbols-outlined">dashboard</span>
+            </button>
+            <button id="upload-book-btn" class="btn btn-primary ms-3 btn-circular upload-book-btn">
+                <span class="material-symbols-outlined">upload</span>
+            </button>
+        </div>
+
+        <div class="d-none d-lg-flex align-items-center">
+            <a href="#" class="text-decoration-none text-secondary me-3 position-relative">
+                <span id="notification-icon" class="material-symbols-outlined">notifications</span>
+                <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill notification-badge" style="display: none;"></span>
             </a>
-            <div class="collapse navbar-collapse">
-                <form class="d-flex mx-auto" role="search">
-                    <input class="form-control me-2 search-bar" type="search" placeholder="Search for books or authors..." aria-label="Buscar">
-                </form>
-            </div>
-            <div class="d-flex align-items-center">
-                <a href="#" class="text-decoration-none text-secondary me-3 position-relative">
-                    <span id="notification-icon" class="material-symbols-outlined">notifications</span>
-                    <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill notification-badge" style="display: none;"></span>
+            <a href="profile.html" class="text-decoration-none text-secondary">
+                <div id="profile-icon-container">
+                    <img id="profile-pic-header" src="default-profile.svg" alt="Foto de perfil" class="rounded-circle" style="width: 40px; height: 40px;">
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end d-lg-none" tabindex="-1" id="mobileNav">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">Menú</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form class="d-flex mb-3 search-form" role="search">
+                <input class="form-control me-2" type="search" placeholder="Buscar libros o autores..." aria-label="Buscar">
+            </form>
+
+            <div class="d-flex justify-content-around align-items-center">
+                <button class="btn btn-secondary btn-circular admin-dashboard-btn" style="display: none;">
+                    <span class="material-symbols-outlined">dashboard</span>
+                </button>
+
+                <a href="#" class="text-decoration-none text-secondary position-relative">
+                    <span class="material-symbols-outlined notification-icon">notifications</span>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill notification-badge" style="display: none;"></span>
                 </a>
+
                 <a href="profile.html" class="text-decoration-none text-secondary">
-                    <div id="profile-icon-container">
-                        <img id="profile-pic-header" src="default-profile.svg" alt="Foto de perfil" class="rounded-circle" style="width: 40px; height: 40px;">
+                    <div class="profile-icon-container">
+                        <img src="default-profile.svg" alt="Foto de perfil" class="rounded-circle profile-pic-header" style="width: 40px; height: 40px;">
                     </div>
                 </a>
+
+                <button class="btn btn-primary btn-circular upload-book-btn">
+                    <span class="material-symbols-outlined">upload</span>
+                </button>
             </div>
         </div>
-    </nav>
+    </div>
+</nav>
+
 
     <main class="container mt-5">
         <h2 class="mb-4">Admin Dashboard</h2>
 
         <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Users</h5>
-                        <p class="card-text fs-2 fw-bold">150</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Published Books</h5>
-                        <p class="card-text fs-2 fw-bold">42</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">Comments to Moderate</h5>
-                        <p class="card-text fs-2 fw-bold">8</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <div class="card-header bg-transparent border-0 pt-4">
-                <h3>User Management</h3>
-            </div>
+    <div class="col-md-4">
+        <div class="card text-center" id="users-card" style="cursor: pointer;">
             <div class="card-body">
-                <table class="table table-dark table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Full Name</th>
-                            <th>Email</th>
-                            <th>Current Role</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="user-management-table-body">
-                        <tr><td colspan="5" class="text-center">Loading users...</td></tr>
-                    </tbody>
-                </table>
+                <h5 class="card-title">Total Users</h5>
+                <p class="card-text fs-2 fw-bold" id="total-users">0</p>
             </div>
         </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center" id="books-card" style="cursor: pointer;">
+            <div class="card-body">
+                <h5 class="card-title">Published Books</h5>
+                <p class="card-text fs-2 fw-bold" id="total-books">0</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center" id="comments-card" style="cursor: pointer;">
+            <div class="card-body">
+                <h5 class="card-title">Comments to Moderate</h5>
+                <p class="card-text fs-2 fw-bold" id="total-comments">0</p>
+            </div>
+        </div>
+    </div>
+</div>
 
+<div class="card">
+    <div class="card-header bg-transparent border-0 pt-4">
+        <h3 id="management-title">User Management</h3>
+    </div>
+    <div class="card-body">
+        <table class="table table-dark table-striped table-hover" id="management-table">
+            <thead id="management-table-head">
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Current Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="management-table-body">
+                <tr><td colspan="5" class="text-center">Loading users...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
     </main>
-
-   <script type="module" src="../js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="../js/main.js"></script>
+    <script type="module" src="../js/admin-dashboard.js"></script>
 
 </body>
 </html>

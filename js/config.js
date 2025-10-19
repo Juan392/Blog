@@ -1,13 +1,12 @@
-const isLocal =
-  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const isLocal = window.location.hostname === "127.0.0.1";
 
 const currentConfig = {
   API_BASE_URL: isLocal
-    ? "http://localhost:3000/api"
+    ? "http://127.0.0.1:3000/api"
     : "https://tu-dominio-en-produccion.com/api",
 
   STATIC_BASE_URL: isLocal
-    ? "http://localhost:3000"
+    ? "http://127.0.0.1:3000"
     : "https://tu-dominio-en-produccion.com"
 };
 
