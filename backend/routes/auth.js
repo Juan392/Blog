@@ -6,6 +6,7 @@ const db = require('../config/db');
 const { authenticateToken } = require('../middleware/auth');
 const { sendVerificationEmail } = require('../utils/mailer');
 const crypto = require('crypto'); 
+
 // POST /api/auth/register
 router.post('/register', async (req, res, next) => { 
     console.log('💡 Body recibido:', req.body);
