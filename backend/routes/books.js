@@ -216,54 +216,86 @@ router.delete('/:id/save', authenticateToken, async (req, res, next) => {
   }
 });
 
-// POST /api/books/:id/upvote
-router.post('/:id/upvote', authenticateToken, async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const sql = 'UPDATE Books SET upvotes = upvotes + 1 WHERE id = ?';
-    const [result] = await db.query(sql, [id]);
-
-    if (result.affectedRows === 0)
-      return res.status(404).json({ message: 'Libro no encontrado.' });
-
-    res.status(200).json({ message: 'Upvote registrado.' });
-  } catch (error) {
-    console.error('Error en POST /books/:id/upvote:', error);
-    next(error);
-  }
-});
-
-// POST /api/books/:id/comments
+// Publicar comentarios con media (imágenes o videos)
 router.post('/:id/comments', authenticateToken, uploadComments.single('media'), async (req, res, next) => {
   try {
-    const { id } = req.params;
     const { content, parent_id } = req.body;
-    if (!content && !req.file) return res.status(400).json({ message: 'Contenido requerido.' });
+    if (!content && !req.file) return res.status(400).json({ message: 'Contenido o media requerido.' });
 
     let media_url = null;
     let media_type = null;
 
     if (req.file) {
-      const filename = Date.now() + path.extname(req.file.originalname);
-      const filepath = path.join(uploadDir, filename);
-
-      if (req.file.mimetype.startsWith('image/')) {
-        await sharp(req.file.buffer).toFile(filepath);
-        media_type = 'image';
-      } else if (req.file.mimetype.startsWith('video/')) {
-        fs.writeFileSync(filepath, req.file.buffer);
-        media_type = 'video';
+      media_type = req.file.mimetype.startsWith('image/') ? 'image' : 'video';
+      if (media_type === 'image') {
+        const filename = `${Date.now()}.webp`;
+        await sharp(req.file.buffer)
+          .resize(800)
+          .webp({ quality: 80 })
+          .toFile(path.join(uploadDir, filename));
+        media_url = `/uploads/${filename}`;
+      } else {
+        const filename = `${Date.now()}${path.extname(req.file.originalname)}`;
+        fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
+        media_url = `/uploads/${filename}`;
       }
-
-      media_url = `/uploads/${filename}`;
     }
 
-    const sql = 'INSERT INTO Comments (user_id, book_id, content, parent_id, media_url, media_type) VALUES (?, ?, ?, ?, ?, ?)';
-    const [result] = await db.query(sql, [req.user.userId, id, content || null, parent_id || null, media_url, media_type]);
+    const sql = 'INSERT INTO Comments (content, user_id, book_id, parent_id, media_url, media_type) VALUES (?, ?, ?, ?, ?, ?)';
+    const [result] = await db.query(sql, [content, req.user.userId, req.params.id, parent_id || null, media_url, media_type]);
 
-    res.status(201).json({ message: 'Comentario agregado.', commentId: result.insertId });
+    const [newComment] = await db.query(
+      'SELECT c.user_id, c.id, c.content, c.created_at, c.likes, c.parent_id, c.media_url, c.media_type, u.full_name, u.profile_pic FROM Comments c JOIN Users u ON c.user_id = u.id WHERE c.id = ?',
+      [result.insertId]
+    );
+
+    if (newComment[0].profile_pic) newComment[0].profile_pic = `${req.protocol}://${req.get('host')}${newComment[0].profile_pic}`;
+    if (newComment[0].media_url) newComment[0].media_url = `${req.protocol}://${req.get('host')}${newComment[0].media_url}`;
+
+    // Notificaciones
+    if (parent_id) {
+      const [parentComment] = await db.query('SELECT user_id FROM Comments WHERE id = ?', [parent_id]);
+      if (parentComment.length > 0 && parentComment[0].user_id !== req.user.userId) {
+        const template = `{sender} respondió tu comentario`;
+        createNotificationWithSenderName(parentComment[0].user_id, req.user.userId, template, 'comment_reply', null);
+      }
+    } else {
+      const [book] = await db.query('SELECT uploader_id, title FROM Books WHERE id = ?', [req.params.id]);
+      if (book.length > 0 && book[0].uploader_id !== req.user.userId) {
+        const template = `{sender} comentó en tu libro "${book[0].title}"`;
+        createNotificationWithSenderName(book[0].uploader_id, req.user.userId, template, 'book_comment', req.params.id);
+      }
+    }
+
+    res.status(201).json(newComment[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Dar like (upvote) a un libro — solo una vez por usuario
+router.post('/:id/upvote', authenticateToken, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    // Verificar si el usuario ya votó
+    const [existingVote] = await db.query(
+      'SELECT id FROM BookVotes WHERE user_id = ? AND book_id = ?',
+      [userId, id]
+    );
+
+    if (existingVote.length > 0) 
+      return res.status(400).json({ message: 'Ya votaste este libro.' });
+
+    // Insertar voto y actualizar contador
+    await db.query('INSERT INTO BookVotes (user_id, book_id) VALUES (?, ?)', [userId, id]);
+    await db.query('UPDATE Books SET upvotes = IFNULL(upvotes,0) + 1 WHERE id = ?', [id]);
+
+    const [updatedBook] = await db.query('SELECT upvotes FROM Books WHERE id = ?', [id]);
+    res.status(200).json({ message: 'Voto registrado.', newUpvotes: updatedBook[0].upvotes });
   } catch (error) {
-    console.error('Error en POST /books/:id/comments:', error);
+    console.error('Error en /books/:id/upvote:', error);
     next(error);
   }
 });
