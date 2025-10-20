@@ -6,7 +6,6 @@ const db = require('../config/db');
 const { authenticateToken } = require('../middleware/auth');
 const { sendVerificationEmail } = require('../utils/mailer');
 const crypto = require('crypto'); 
-
 // POST /api/auth/register
 router.post('/register', async (req, res, next) => { 
     console.log('💡 Body recibido:', req.body);
@@ -22,27 +21,18 @@ router.post('/register', async (req, res, next) => {
             userRole = 'admin';
         }
 
-        const sql = 'INSERT INTO Users (full_name, email, password_hash, role) VALUES (?, ?, ?, ?)';
+        // 🔹 Insertar usuario directamente como verificado
+        const sql = `
+            INSERT INTO Users (full_name, email, password_hash, role, is_verified)
+            VALUES (?, ?, ?, ?, 1)
+        `;
         const [result] = await db.query(sql, [fullName, email, passwordHash, userRole]);
-        const userId = result.insertId;
 
-        // Generar token de verificación (24h)
-        const verificationToken = crypto.randomBytes(32).toString('hex');
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + 1); // 1 día
-
-        await db.query(
-            'UPDATE Users SET verification_token = ?, token_expiry = ? WHERE id = ?',
-            [verificationToken, expiryDate, userId]
-        );
-
-        // Enviar correo sin bloquear el flujo principal
-        sendVerificationEmail(email, verificationToken)
-            .then(() => console.log(`✅ Correo de verificación enviado a ${email}`))
-            .catch(err => console.error(`⚠️ Error al enviar correo a ${email}:`, err));
+        // 🔹 (Omitimos generación de token y envío de correo)
+        console.log(`✅ Usuario registrado y verificado automáticamente: ${email}`);
 
         res.status(201).json({ 
-            message: 'Usuario registrado. Si el correo es válido, recibirás un enlace de verificación.',
+            message: 'Usuario registrado y verificado exitosamente.',
             userId: result.insertId
         });
         
@@ -53,6 +43,7 @@ router.post('/register', async (req, res, next) => {
         next(error);
     }
 });
+
 
 // POST /api/auth/login
 router.post('/login', async (req, res, next) => {
