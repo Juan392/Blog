@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
  * @param {string} verificationToken El token único para la verificación.
  */
 async function sendVerificationEmail(userEmail, verificationToken) {
-    const verificationUrl = `http://127.0.0.1:3000/api/auth/verify-email?token=${verificationToken}`;
+    const verificationUrl = `https://blog-production-bfac.up.railway.app/api/auth/verify-email?token=${verificationToken}`;
 
     const mailOptions = {
         from: `"Academia Books" <${process.env.EMAIL_USER}>`, 
