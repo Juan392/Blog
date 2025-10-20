@@ -11,9 +11,9 @@ const cron = require('node-cron');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Middlewares
+// ======== Middlewares ========
 app.use(cors({
-    origin: ['https://blog-production-bfac.up.railway.app'], 
+    origin: ['https://blog-production-bfac.up.railway.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true
 }));
@@ -22,9 +22,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use(cookieParser());
 
-// Cron job: limpiar usuarios no verificados cada 24h
+// ======== Cron job: eliminar usuarios no verificados ========
 cron.schedule('0 0 * * *', async () => {
-    console.log('🗑️ Ejecutando tarea de limpieza de usuarios no verificados...');
+    console.log('🗑️ Ejecutando limpieza de usuarios no verificados...');
     try {
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
         const sql = `
@@ -34,63 +34,59 @@ cron.schedule('0 0 * * *', async () => {
         `;
         const [result] = await db.query(sql, [twentyFourHoursAgo]);
         if (result.affectedRows > 0) {
-            console.log(`✅ Tarea de limpieza completada. Se eliminaron ${result.affectedRows} usuarios.`);
+            console.log(`✅ ${result.affectedRows} usuarios eliminados.`);
         } else {
-            console.log('🧹 No se encontraron usuarios para eliminar.');
+            console.log('🧹 No hay usuarios por eliminar.');
         }
     } catch (error) {
-        console.error('❌ Error durante la tarea de limpieza:', error);
+        console.error('❌ Error en limpieza:', error);
     }
 });
 
-// Carpeta de uploads
+// ======== Archivos estáticos ========
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
 app.use('/uploads', express.static(uploadDir));
 
-// Servir frontend sin mover carpetas
 app.use('/html', express.static(path.join(__dirname, '../html')));
 app.use('/css', express.static(path.join(__dirname, '../css')));
 app.use('/js', express.static(path.join(__dirname, '../js')));
 
-
-
-// Rutas del backend
+// ======== Rutas ========
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const bookRoutes = require('./routes/books');
 const notificationRoutes = require('./routes/notifications');
 const createAdminAccount = require('./scripts/seedAdmin');
 
-
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/notifications', notificationRoutes);
 
-// Ruta 404
-app.use((req, res, next) => {
+// ======== Ruta 404 ========
+app.use((req, res) => {
     res.status(404).json({ message: 'Ruta no encontrada.' });
 });
 
-// Manejo global de errores
+// ======== Manejo global de errores ========
 app.use((err, req, res, next) => {
     console.error('⚠️ Error inesperado:', err.stack);
     res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
 });
 
-// Iniciar servidor
+// ======== Iniciar servidor ========
 db.getConnection()
   .then(() => {
-      console.log('✅ Conectado correctamente a la base de datos.');
+      console.log('✅ Conectado a la base de datos.');
       app.listen(PORT, () => {
-          console.log(`Servidor corriendo en el puerto ${PORT}`);
-createAdminAccount().catch(err => console.error('❌ Error creando admin:', err));
+          console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
+          createAdminAccount().catch(err => console.error('❌ Error creando admin:', err));
       });
   })
   .catch((err) => {
-      console.error('Error al conectar con la base de datos:', err);
+      console.error('❌ Error al conectar con la base de datos:', err);
       process.exit(1);
   });

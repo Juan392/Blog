@@ -36,10 +36,13 @@ router.post('/register', async (req, res, next) => {
             [verificationToken, expiryDate, userId]
         );
 
-        await sendVerificationEmail(email, verificationToken);
+        // Enviar correo sin bloquear el flujo principal
+        sendVerificationEmail(email, verificationToken)
+            .then(() => console.log(`✅ Correo de verificación enviado a ${email}`))
+            .catch(err => console.error(`⚠️ Error al enviar correo a ${email}:`, err));
 
         res.status(201).json({ 
-            message: 'Usuario registrado. Por favor, revisa tu correo para verificar la cuenta.',
+            message: 'Usuario registrado. Si el correo es válido, recibirás un enlace de verificación.',
             userId: result.insertId
         });
         
@@ -117,7 +120,7 @@ router.get('/me', authenticateToken, async (req, res) => {
 
     res.status(200).json(users[0]);
   } catch (err) {
-    console.error('Error en /me:');
+    console.error('Error en /me:', err);
     res.status(500).json({ message: 'Error del servidor.' });
   }
 });
@@ -141,6 +144,7 @@ router.get('/verify-email', async (req, res, next) => {
             "UPDATE Users SET status = 'verified', verification_token = NULL, token_expiry = NULL WHERE id = ?",
             [user.id]
         );
+
         res.send('<h1>¡Correo verificado exitosamente! ✅</h1><p>Ya puedes cerrar esta ventana e iniciar sesión en Academia Books.</p>');
 
     } catch (error) {
