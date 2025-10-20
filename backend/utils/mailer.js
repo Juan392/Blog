@@ -23,10 +23,9 @@ async function sendVerificationEmail(userEmail, verificationToken) {
                 <p>Si no te registraste en nuestro sitio, por favor ignora este correo.</p>
             `
         });
-
         console.log("✅ Correo de verificación enviado con éxito");
     } catch (error) {
-        console.error("❌ Error al enviar correo de verificación:", error);
+        console.error(`❌ Error al enviar correo de verificación:`, error);
     }
 }
 
