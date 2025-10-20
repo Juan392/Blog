@@ -11,7 +11,7 @@ async function sendVerificationEmail(userEmail, verificationToken) {
 
     try {
         await resend.emails.send({
-            from: 'Academia Books <onboarding@resend.dev>',
+            from: 'Academia Books <no-reply@academiabooks.com>',
             to: userEmail,
             subject: 'Verifica tu cuenta en Academia Books',
             html: `
