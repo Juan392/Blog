@@ -228,4 +228,57 @@ router.get('/:id/bookmarks', authenticateToken, async (req, res, next) => {
     }
 });
 
+// POST /api/books/:id/upvote
+router.post('/:id/upvote', authenticateToken, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const sql = 'UPDATE Books SET upvotes = upvotes + 1 WHERE id = ?';
+    const [result] = await db.query(sql, [id]);
+
+    if (result.affectedRows === 0)
+      return res.status(404).json({ message: 'Libro no encontrado.' });
+
+    res.status(200).json({ message: 'Upvote registrado.' });
+  } catch (error) {
+    console.error('Error en POST /books/:id/upvote:', error);
+    next(error);
+  }
+});
+
+// POST /api/books/:id/comments
+router.post('/:id/comments', authenticateToken, uploadComments.single('media'), async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { content, parent_id } = req.body;
+    if (!content && !req.file) return res.status(400).json({ message: 'Contenido requerido.' });
+
+    let media_url = null;
+    let media_type = null;
+
+    if (req.file) {
+      const filename = Date.now() + path.extname(req.file.originalname);
+      const filepath = path.join(uploadDir, filename);
+
+      if (req.file.mimetype.startsWith('image/')) {
+        await sharp(req.file.buffer).toFile(filepath);
+        media_type = 'image';
+      } else if (req.file.mimetype.startsWith('video/')) {
+        fs.writeFileSync(filepath, req.file.buffer);
+        media_type = 'video';
+      }
+
+      media_url = `/uploads/${filename}`;
+    }
+
+    const sql = 'INSERT INTO Comments (user_id, book_id, content, parent_id, media_url, media_type) VALUES (?, ?, ?, ?, ?, ?)';
+    const [result] = await db.query(sql, [req.user.userId, id, content || null, parent_id || null, media_url, media_type]);
+
+    res.status(201).json({ message: 'Comentario agregado.', commentId: result.insertId });
+  } catch (error) {
+    console.error('Error en POST /books/:id/comments:', error);
+    next(error);
+  }
+});
+
+
 module.exports = router;
