@@ -25,7 +25,7 @@ router.post('/register', async (req, res, next) => {
         // 🔹 Insertar usuario directamente como verificado
         const sql = `
             INSERT INTO Users (full_name, email, password_hash, role, verified)
-            VALUES (?, ?, ?, ?, 1)
+            VALUES (?, ?, ?, ?, 'verified')
         `;
         const [result] = await db.query(sql, [fullName, email, passwordHash, userRole]);
 
