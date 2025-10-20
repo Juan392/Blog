@@ -323,5 +323,25 @@ router.post('/comments/:id/like', authenticateToken, async (req, res, next) => {
   }
 });
 
+// Obtener todos los comentarios (para admin)
+router.get('/comments/all', authenticateToken, isAdmin, async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit) || 1000;
+
+    const sql = `
+      SELECT c.id, c.content, c.user_id, c.book_id, c.created_at
+      FROM Comments c
+      ORDER BY c.created_at DESC
+      LIMIT ?`;
+    const [comments] = await db.query(sql, [limit]);
+
+    res.json(comments);
+  } catch (err) {
+    console.error('Error en /books/comments/all:', err);
+    next(err);
+  }
+});
+
+
 
 module.exports = router;
