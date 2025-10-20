@@ -300,5 +300,28 @@ router.post('/:id/upvote', authenticateToken, async (req, res, next) => {
   }
 });
 
+// Dar like a un comentario
+router.post('/comments/:id/like', authenticateToken, async (req, res, next) => {
+  const commentId = req.params.id;
+  const userId = req.user.userId;
+
+  try {
+    const sql = 'INSERT INTO CommentLikes (comment_id, user_id) VALUES (?, ?)';
+    await db.query(sql, [commentId, userId]);
+
+    const [countResult] = await db.query(
+      'SELECT COUNT(*) as likes FROM CommentLikes WHERE comment_id = ?',
+      [commentId]
+    );
+
+    await db.query('UPDATE Comments SET likes = ? WHERE id = ?', [countResult[0].likes, commentId]);
+
+    res.status(200).json({ message: 'Me gusta registrado.', likes: countResult[0].likes });
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ message: 'Ya has dado like a este comentario.' });
+    next(err);
+  }
+});
+
 
 module.exports = router;
